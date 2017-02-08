@@ -274,7 +274,7 @@ Text GLabel 3150 2900 0    60   Output ~ 0
 S-CLK
 Text GLabel 3150 2800 0    60   Output ~ 0
 S-CS
-Text GLabel 3250 4650 0    60   Output ~ 0
+Text GLabel 3250 2200 0    60   Output ~ 0
 RESET
 Text Notes 4100 2450 0    47   ~ 0
 SPI Master\nP0.6 : CH1-DX0 : MISO\nP0.7 : CH1-DOUT : MOSI\nP0.8 : CH1-SCLKOUT : CLK\nP0.9 : CH1-SELO0 : SEL\n
@@ -333,7 +333,6 @@ Text GLabel 3250 2500 0    60   Output ~ 0
 M-CLK
 Text GLabel 3250 2600 0    60   Output ~ 0
 M-CS
-NoConn ~ 3450 2200
 Wire Wire Line
 	1550 2000 1800 2000
 Wire Wire Line
@@ -404,7 +403,7 @@ Wire Wire Line
 Wire Wire Line
 	3450 4550 3250 4550
 Wire Wire Line
-	3250 4650 3450 4650
+	3250 2200 3450 2200
 NoConn ~ 3450 4850
 NoConn ~ 3450 4750
 Wire Wire Line
@@ -1398,4 +1397,5 @@ NoConn ~ 3450 5250
 NoConn ~ 3450 5050
 NoConn ~ 3450 2700
 NoConn ~ 3450 5150
+NoConn ~ 3450 4650
 $EndSCHEMATC
