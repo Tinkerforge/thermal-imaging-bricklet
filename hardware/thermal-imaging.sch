@@ -29,6 +29,7 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
+LIBS:thermal-imaging-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
@@ -1398,4 +1399,6 @@ NoConn ~ 3450 5050
 NoConn ~ 3450 2700
 NoConn ~ 3450 5150
 NoConn ~ 3450 4650
+Text Notes 2250 5150 0    79   ~ 0
+Change Pin for Debug OUTPUT
 $EndSCHEMATC
