@@ -116,9 +116,15 @@ bool handle_temperature_image_low_level_callback(void) {
 }
 
 void communication_tick(void) {
-	communication_callback_tick();
+	static uint32_t counter = 0;
+	counter++;
+	if(counter == 2) {
+		counter = 0;
+		handle_grey_scale_image_low_level_callback();
+	}
+	//communication_callback_tick();
 }
 
 void communication_init(void) {
-	communication_callback_init();
+//	communication_callback_init();
 }
