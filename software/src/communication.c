@@ -70,9 +70,7 @@ bool handle_grey_scale_image_low_level_callback(void) {
 			tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(GreyScaleImageLowLevelCallback), FID_CALLBACK_GREY_SCALE_IMAGE_LOW_LEVEL);
 
 			cb.stream_chunk_offset = lepton.image_buffer_stream_index;
-			for(uint32_t i = 0; i < length; i++) {
-				cb.stream_chunk_data[i] = lepton.image_buffer[lepton.image_buffer_stream_index + i];
-			}
+			memcpy(cb.stream_chunk_data, lepton.image_buffer + lepton.image_buffer_stream_index, length);
 			lepton.image_buffer_stream_index += length;
 #if 0
 			if(lepton.image_buffer_stream_index >= LEPTON_IMAGE_BUFFER_SIZE) {
