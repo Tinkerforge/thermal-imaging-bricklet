@@ -27,7 +27,7 @@
 #define LEPTON_RESET_TIME           100
 #define LEPTON_BOOTUP_TIME          1000 // Datasheet says we need to wait at least 950ms
 
-#define LEPTON_SPI_BAUDRATE         1000000
+#define LEPTON_SPI_BAUDRATE         4400000 // Use double the minimum speed, so we have half a frame time for other stuff inbetween
 #define LEPTON_SPI_CHANNEL          USIC0_CH1
 #define LEPTON_SPI                  XMC_SPI0_CH1
 
@@ -40,6 +40,9 @@
 #define LEPTON_MISO_PIN             P0_6
 #define LEPTON_MISO_INPUT           XMC_USIC_CH_INPUT_DX0
 #define LEPTON_MISO_SOURCE          0b010 // DX0C
+
+
+#define LEPTON_I2C_BAUDRATE         400000
 
 #define LEPTON_I2C_ADDRESS          0x2A
 #define LEPTON_I2C_CHANNEL          USIC0_CH1
