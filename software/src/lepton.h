@@ -312,10 +312,52 @@ typedef struct {
     uint16_t end_row;
 } LeptonVIDFocusROI;
 
+#define LEPTON_PIXEL_LINES 60
+#define LEPTON_PIXEL_ROWS 80
+
+#define LEPTON_SPI_PACKET_ID_MASK 0x0FFF
+#define LEPTON_SPI_DISCARD_PACKET_ID_MASK 0xF00
+#define LEPTON_PACKET_PAYLOAD_SIZE (160/sizeof(uint16_t))
+#define LEPTON_IMAGE_BUFFER_SIZE (LEPTON_PIXEL_LINES*LEPTON_PIXEL_ROWS)
+#define LEPTON_PACKET_SIZE (164/sizeof(uint16_t))
+
+typedef enum {
+	LEPTON_INTERFACE_SPI,
+	LEPTON_INTERFACE_I2C
+} LeptonInterface;
+
+typedef enum {
+	LEPTON_STATE_RESET,
+	LEPTON_STATE_INIT,
+	LEPTON_STATE_SYNC,
+	LEPTON_STATE_READ_PACKET,
+	LEPTON_STATE_CONFIGURE,
+	LEPTON_STATE_WAIT_FOR_SEND
+} LeptonState;
+
+typedef union {
+	struct {
+		uint16_t id;
+		uint16_t crc;
+		uint16_t payload[LEPTON_PACKET_PAYLOAD_SIZE];
+	} __attribute__((__packed__)) vospi;
+
+	uint16_t buffer[LEPTON_PACKET_SIZE];
+} LeptonPacket;
 
 typedef struct {
+	LeptonState state;
 	uint32_t reset_start_time; // Set to 0 if reset finished
 	uint32_t boot_start_time;  // Set to 0 if boot finished
+	uint32_t sync_start_time;
+	LeptonInterface lepton_active_interface;
+
+	uint32_t packet_next_id;
+	uint32_t image_buffer_stream_index;
+	uint32_t image_buffer_receive_index;
+	uint8_t image_buffer[LEPTON_IMAGE_BUFFER_SIZE];
+	uint32_t packet_index;
+	LeptonPacket packet;
 } Lepton;
 
 void lepton_init(Lepton *lepton);

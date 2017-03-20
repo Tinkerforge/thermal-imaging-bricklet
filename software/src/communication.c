@@ -24,6 +24,10 @@
 #include "bricklib2/utility/communication_callback.h"
 #include "bricklib2/protocols/tfp/tfp.h"
 
+#include "lepton.h"
+
+extern Lepton lepton;
+
 BootloaderHandleMessageResponse handle_message(const void *message, void *response) {
 	switch(tfp_get_fid_from_message(message)) {
 		case FID_SET_CALLBACK_CONFIG: return set_callback_config(message);
@@ -52,10 +56,32 @@ bool handle_grey_scale_image_low_level_callback(void) {
 	static GreyScaleImageLowLevelCallback cb;
 
 	if(!is_buffered) {
-		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(GreyScaleImageLowLevelCallback), FID_CALLBACK_GREY_SCALE_IMAGE_LOW_LEVEL);
-		// TODO: Implement GreyScaleImageLowLevel callback handling
-
 		return false;
+		uint8_t length = 62;
+		if(lepton.image_buffer_stream_index + 62 > LEPTON_IMAGE_BUFFER_SIZE) {
+			length = LEPTON_IMAGE_BUFFER_SIZE - lepton.image_buffer_stream_index;
+		}
+
+		if(length == 0) {
+			return false;
+		}
+
+		if(lepton.image_buffer_stream_index + length <= lepton.image_buffer_receive_index) {
+			tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(GreyScaleImageLowLevelCallback), FID_CALLBACK_GREY_SCALE_IMAGE_LOW_LEVEL);
+
+			cb.stream_chunk_offset = lepton.image_buffer_stream_index;
+			for(uint32_t i = 0; i < length; i++) {
+				cb.stream_chunk_data[i] = lepton.image_buffer[lepton.image_buffer_stream_index + i];
+			}
+			lepton.image_buffer_stream_index += length;
+#if 0
+			if(lepton.image_buffer_stream_index >= LEPTON_IMAGE_BUFFER_SIZE) {
+				lepton.image_buffer_stream_index = 0;
+			}
+#endif
+		} else {
+			return false;
+		}
 	}
 
 	if(bootloader_spitfp_is_send_possible(&bootloader_status.st)) {
@@ -74,7 +100,7 @@ bool handle_temperature_image_low_level_callback(void) {
 	static TemperatureImageLowLevelCallback cb;
 
 	if(!is_buffered) {
-		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(TemperatureImageLowLevelCallback), FID_CALLBACK_TEMPERATURE_IMAGE_LOW_LEVEL);
+		//tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(TemperatureImageLowLevelCallback), FID_CALLBACK_TEMPERATURE_IMAGE_LOW_LEVEL);
 		// TODO: Implement TemperatureImageLowLevel callback handling
 
 		return false;
