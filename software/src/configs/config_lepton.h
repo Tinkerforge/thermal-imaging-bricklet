@@ -50,7 +50,7 @@
 
 #define LEPTON_SCL_PIN              P1_3
 #define LEPTON_SCL_PIN_MODE         XMC_GPIO_MODE_OUTPUT_OPEN_DRAIN_ALT6
-#define LEPTON_SCL_INPUT            XMC_USUC_CH_INPUT_DX1
+#define LEPTON_SCL_INPUT            XMC_USIC_CH_INPUT_DX1
 #define LEPTON_SCL_SOURCE           0
 
 #define LEPTON_SDA_PIN              P1_2
