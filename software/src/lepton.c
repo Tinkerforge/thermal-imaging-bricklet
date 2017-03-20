@@ -456,7 +456,6 @@ void lepton_copy_packet_to_buffer(Lepton *lepton) {
 	lepton->image_buffer_receive_index = start_index + LEPTON_PIXEL_ROWS;
 	if(lepton->image_buffer_receive_index == LEPTON_IMAGE_BUFFER_SIZE) {
 		lepton->state = LEPTON_STATE_WAIT_FOR_SEND;
-		lepton->image_buffer_receive_index = 0;
 		lepton->packet_next_id = 0;
 	}
 }
@@ -521,21 +520,22 @@ void lepton_handle_read_packet(Lepton *lepton) {
 	// Check if packet is at the end and FIFO has less than 8 words
 	// In this case we don't get any interrupts anymore, we read the
 	// data directly
-	if((lepton_packet_end - lepton_packet_pointer) < 8) {
-		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
-		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
-		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
+
+	if(lepton_packet_pointer >= lepton_packet_last_full) {
+//		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
+//		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
+//		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
 		while(!XMC_USIC_CH_RXFIFO_IsEmpty(LEPTON_SPI)) {
 			*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
 		}
-		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
-		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
-		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
+//		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
+//		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
+//		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 	}
 
 	// If we send a whole packet of SPI clocks and we reached the end of our
 	// packet pointer, we are done with this packet and can copy it
-	if(lepton->packet_index == LEPTON_PACKET_SIZE) {
+	if(lepton->packet_index > 0) {
 		if(lepton_packet_pointer == lepton_packet_end) {
 			lepton->packet_index = 0;
 			lepton_packet_pointer = lepton_packet_start;
@@ -555,14 +555,20 @@ void lepton_handle_read_packet(Lepton *lepton) {
 		// TODO: Start timeout for a maximum time a packet should take
 		//       if timeout is broken, reset state machine and re-sync
 		lepton_spi_select(lepton);
+		lepton->packet_index = 16;
+		for(uint8_t i = 0; i < 16; i++) {
+			LEPTON_SPI->IN[0] = 0;
+		}
 	}
 
 	// Put 0 into SPI FIFO until it is full (this is just here to generate a
 	// clock, there is no MOSI connected to anything)
+#if 0
 	while(lepton->packet_index < LEPTON_PACKET_SIZE && !XMC_USIC_CH_TXFIFO_IsFull(LEPTON_SPI)) {
 		LEPTON_SPI->IN[0] = 0;
 		lepton->packet_index++;
 	}
+#endif
 }
 
 void lepton_handle_configure(Lepton *lepton) {
@@ -570,13 +576,12 @@ void lepton_handle_configure(Lepton *lepton) {
 }
 
 void lepton_handle_wait_for_send(Lepton *lepton) {
-#if 0
 	if(lepton->image_buffer_stream_index == LEPTON_IMAGE_BUFFER_SIZE) {
 		lepton->image_buffer_stream_index = 0;
 		lepton->image_buffer_receive_index = 0;
+		lepton->packet_next_id = 0;
 		lepton->state = LEPTON_STATE_READ_PACKET;
 	}
-#endif
 }
 
 uint32_t last_time = 0;
