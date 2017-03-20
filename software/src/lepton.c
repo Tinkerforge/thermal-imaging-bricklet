@@ -439,7 +439,7 @@ void lepton_copy_packet_to_buffer(Lepton *lepton) {
 		return;
 	}
 
-	const uint32_t start_index = LEPTON_PIXEL_LINES*lepton->packet_next_id;
+	const uint32_t start_index = LEPTON_PIXEL_ROWS*lepton->packet_next_id;
 	for(uint8_t i = 0; i < LEPTON_PIXEL_ROWS; i++) {
 		lepton->image_buffer[start_index + i] = lepton->packet.vospi.payload[i];
 	}
