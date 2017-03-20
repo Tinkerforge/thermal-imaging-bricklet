@@ -56,7 +56,6 @@ bool handle_grey_scale_image_low_level_callback(void) {
 	static GreyScaleImageLowLevelCallback cb;
 
 	if(!is_buffered) {
-		return false;
 		uint8_t length = 62;
 		if(lepton.image_buffer_stream_index + 62 > LEPTON_IMAGE_BUFFER_SIZE) {
 			length = LEPTON_IMAGE_BUFFER_SIZE - lepton.image_buffer_stream_index;
@@ -66,7 +65,8 @@ bool handle_grey_scale_image_low_level_callback(void) {
 			return false;
 		}
 
-		if(lepton.image_buffer_stream_index + length <= lepton.image_buffer_receive_index) {
+//		if(lepton.image_buffer_stream_index + length <= lepton.image_buffer_receive_index) {
+		if(LEPTON_IMAGE_BUFFER_SIZE == lepton.image_buffer_receive_index) {
 			tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(GreyScaleImageLowLevelCallback), FID_CALLBACK_GREY_SCALE_IMAGE_LOW_LEVEL);
 
 			cb.stream_chunk_offset = lepton.image_buffer_stream_index;
