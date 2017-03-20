@@ -42,6 +42,7 @@ SET(SOURCES
 	"${PROJECT_SOURCE_DIR}/src/bricklib2/utility/ringbuffer.c"
 	"${PROJECT_SOURCE_DIR}/src/bricklib2/utility/pearson_hash.c"
 	"${PROJECT_SOURCE_DIR}/src/bricklib2/utility/communication_callback.c"
+	"${PROJECT_SOURCE_DIR}/src/bricklib2/utility/crc16.c"
 
 	"${PROJECT_SOURCE_DIR}/src/bricklib2/xmclib/XMCLib/src/xmc_gpio.c"
 	"${PROJECT_SOURCE_DIR}/src/bricklib2/xmclib/XMCLib/src/xmc1_gpio.c"
