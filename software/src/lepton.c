@@ -431,8 +431,15 @@ void lepton_copy_packet_to_buffer(Lepton *lepton) {
 		return;
 	}
 
+	const uint16_t vospi_id = lepton->packet.vospi.id & 0x00FF;
+
+	// If we get the same packet a second time, we just ignore it
+	if(vospi_id+1 == lepton->packet_next_id) {
+		return;
+	}
+
 	// Start from beginning in case of id mismatch
-	if((lepton->packet.vospi.id & 0x00FF) != lepton->packet_next_id) {
+	if(vospi_id != lepton->packet_next_id) {
 		// We missed a packet, we are out of sync!
 		// We resync by waiting for the next beginning of a frame
 		lepton->packet_next_id = 0;
