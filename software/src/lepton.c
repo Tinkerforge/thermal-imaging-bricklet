@@ -41,11 +41,12 @@ extern Lepton lepton;
 
 uint16_t * const lepton_packet_start = lepton.packet.buffer;
 uint16_t * const lepton_packet_end = lepton.packet.buffer + LEPTON_PACKET_SIZE;
+uint16_t * const lepton_packet_last_full = lepton.packet.buffer + LEPTON_PACKET_SIZE-2;
 uint16_t *lepton_packet_pointer = lepton.packet.buffer;
 
 
 void __attribute__((optimize("-O3"))) lepton_rx_irq_handler(void) {
-	XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
+//	XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
 	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
 	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
 	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
@@ -54,7 +55,35 @@ void __attribute__((optimize("-O3"))) lepton_rx_irq_handler(void) {
 	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
 	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
 	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
+	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
+	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
+	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
+	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
+	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
+	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
+	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
+	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
+
+	LEPTON_SPI->IN[0] = 0;
+	LEPTON_SPI->IN[0] = 0;
+	if(lepton_packet_pointer != lepton_packet_last_full) {
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+		LEPTON_SPI->IN[0] = 0;
+	}
+
+//	XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 }
 
 void lepton_i2c_write(Lepton *lepton, const uint16_t reg, const uint16_t length, const uint16_t *data, bool send_stop) {
