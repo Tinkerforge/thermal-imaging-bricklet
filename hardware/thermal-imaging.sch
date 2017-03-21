@@ -1401,4 +1401,6 @@ NoConn ~ 3450 5150
 NoConn ~ 3450 4650
 Text Notes 2250 5150 0    79   ~ 0
 Change Pin for Debug OUTPUT
+Text Notes 2400 5550 0    79   ~ 0
+Change VSYNC Pin for Interrupt
 $EndSCHEMATC
