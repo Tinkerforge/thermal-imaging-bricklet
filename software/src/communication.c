@@ -21,7 +21,6 @@
 
 #include "communication.h"
 
-#include "bricklib2/utility/communication_callback.h"
 #include "bricklib2/protocols/tfp/tfp.h"
 
 #include "lepton.h"
@@ -117,14 +116,16 @@ bool handle_temperature_image_low_level_callback(void) {
 
 void communication_tick(void) {
 	static uint32_t counter = 0;
+
+	// Only handle callbacks every second call to give bootloader code some time to receive/send other messages
 	counter++;
 	if(counter == 2) {
 		counter = 0;
-		handle_grey_scale_image_low_level_callback();
+		switch(lepton.current_callback_config) {
+			case THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_GREY_SCALE_IMAGE: handle_grey_scale_image_low_level_callback(); break;
+			case THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_TEMPERATURE_IMAGE: handle_temperature_image_low_level_callback(); break;
+			case THERMAL_IMAGING_CALLBACK_CONFIG_MANUAL:
+			default: break;
+		}
 	}
-	//communication_callback_tick();
-}
-
-void communication_init(void) {
-//	communication_callback_init();
 }
