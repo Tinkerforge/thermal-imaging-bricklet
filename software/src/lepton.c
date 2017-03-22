@@ -639,68 +639,6 @@ void lepton_init(Lepton *lepton) {
 	lepton_reset(lepton);
 	XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 }
-#if 0
-bool lepton_check_crc_of_packet(Lepton *lepton) {
-	// First sanity check the id.
-	if(((lepton->packet.vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) != LEPTON_SPI_DISCARD_PACKET_ID_MASK) &&
-	   ((lepton->packet.vospi.id & 0x00FF) > LEPTON_FRAME_LINES)) {
-		return false;
-	}
-
-	// Remove first 4 bits of id, set crc to 0 in packet to calculate CRC
-	// See p52ff in datasheet.
-	lepton->packet.vospi.id &= LEPTON_SPI_PACKET_ID_MASK;
-	const uint16_t crc_lepton = lepton->packet.vospi.crc;
-	lepton->packet.vospi.crc = 0;
-
-	return crc_lepton == crc16_ccitt_16in(lepton->packet.buffer, LEPTON_PACKET_SIZE);
-}
-
-void lepton_copy_packet_to_buffer(Lepton *lepton) {
-	// Start from beginning if packet is "discard packet"
-	// Note: Discard packet does not seem to have valid CRC, so we have to
-	//       check for this before we do the CRC calculation...
-	if((lepton->packet.vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) == LEPTON_SPI_DISCARD_PACKET_ID_MASK) {
-		lepton->packet_next_id = 0;
-		return;
-	}
-
-	// Discard packet with invalid crc.
-	if((!lepton_check_crc_of_packet(lepton))) {
-		lepton->state = LEPTON_STATE_SYNC;
-		return;
-	}
-
-	const uint16_t vospi_id = lepton->packet.vospi.id & 0x00FF;
-
-	// If we get the same packet a second time, we just ignore it
-	if(vospi_id+1 == lepton->packet_next_id) {
-		return;
-	}
-
-	// Start from beginning in case of id mismatch
-	if(vospi_id != lepton->packet_next_id) {
-		// We missed a packet, we are out of sync!
-		// We resync by waiting for the next beginning of a frame
-		lepton->packet_next_id = 0;
-		return;
-	}
-
-	const uint32_t start_index = LEPTON_FRAME_LINES*lepton->packet_next_id;
-	for(uint8_t i = 0; i < LEPTON_FRAME_LINES; i++) {
-		lepton->image_buffer[start_index + i] = lepton->packet.vospi.payload[i];
-	}
-
-	lepton->packet_next_id++;
-
-	lepton->image_buffer_receive_index = start_index + LEPTON_FRAME_LINES;
-	if(lepton->image_buffer_receive_index == LEPTON_IMAGE_BUFFER_SIZE) {
-		lepton->state = LEPTON_STATE_WAIT_FOR_SEND;
-		lepton->packet_next_id = 0;
-	}
-}
-#endif
-
 
 void lepton_handle_reset(Lepton *lepton) {
 	// To reset the Lepton we assert the reset line for LEPTON_RESET_TIME ms
