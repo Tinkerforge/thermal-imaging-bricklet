@@ -34,56 +34,273 @@
 #include "xmc_spi.h"
 #include "xmc_gpio.h"
 #include "xmc_usic.h"
+#include "xmc_eru.h"
 
-#define lepton_rx_irq_handler IRQ_Hdlr_11
+#define lepton_rx_read_irq_handler   IRQ_Hdlr_11
+#define lepton_rx_remove_irq_handler IRQ_Hdlr_12
+#define lepton_sync_handler          IRQ_Hdlr_3
 
 extern Lepton lepton;
 
+uint16_t * const lepton_frame_start = lepton.frame.buffer;
+uint16_t * const lepton_frame_end = lepton.frame.buffer + LEPTON_FRAME_SIZE_WITH_TELEMETRY;
+uint16_t * const lepton_frame_end_of_first_packet = lepton.frame.buffer + LEPTON_PACKET_SIZE;
+uint16_t * const lepton_frame_last_full = lepton.frame.buffer + LEPTON_FRAME_SIZE_WITH_TELEMETRY-12;
+uint16_t * const lepton_frame_first_packet_last_full = lepton.frame.buffer + LEPTON_PACKET_SIZE-2;
+uint16_t *lepton_frame_pointer = lepton.frame.buffer;
+uint16_t *lepton_frame_pointer_dummy = lepton.frame.buffer;
+
+#if 0
 uint16_t * const lepton_packet_start = lepton.packet.buffer;
 uint16_t * const lepton_packet_end = lepton.packet.buffer + LEPTON_PACKET_SIZE;
 uint16_t * const lepton_packet_last_full = lepton.packet.buffer + LEPTON_PACKET_SIZE-2;
 uint16_t *lepton_packet_pointer = lepton.packet.buffer;
+#endif
+
+#define LEPTON_SET_SPI_LIMIT(limit) do {\
+	LEPTON_SPI->RBCTR = (uint32_t)((LEPTON_SPI->RBCTR & (uint32_t)~USIC_CH_RBCTR_LIMIT_Msk) | ((limit) << USIC_CH_RBCTR_LIMIT_Pos));\
+} while(0)
+
+#define LEPTON_SPI_WRITE_1() do {\
+	LEPTON_SPI->IN[0] = 0;\
+} while(0)
 
 
-void __attribute__((optimize("-O3"))) lepton_rx_irq_handler(void) {
-//	XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-	*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
+#define LEPTON_SPI_WRITE_2() do {\
+	LEPTON_SPI_WRITE_1();\
+	LEPTON_SPI_WRITE_1();\
+} while(0)
 
-	LEPTON_SPI->IN[0] = 0;
-	LEPTON_SPI->IN[0] = 0;
-	if(lepton_packet_pointer != lepton_packet_last_full) {
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
-		LEPTON_SPI->IN[0] = 0;
+#define LEPTON_SPI_WRITE_4() do {\
+	LEPTON_SPI_WRITE_2();\
+	LEPTON_SPI_WRITE_2();\
+} while(0)
+
+#define LEPTON_SPI_WRITE_6() do {\
+	LEPTON_SPI_WRITE_4();\
+	LEPTON_SPI_WRITE_2();\
+} while(0)
+
+#define LEPTON_SPI_WRITE_8() do {\
+	LEPTON_SPI_WRITE_6();\
+	LEPTON_SPI_WRITE_2();\
+} while(0)
+
+#define LEPTON_SPI_WRITE_10() do {\
+	LEPTON_SPI_WRITE_8();\
+	LEPTON_SPI_WRITE_2();\
+} while(0)
+
+#define LEPTON_SPI_WRITE_12() do {\
+	LEPTON_SPI_WRITE_10();\
+	LEPTON_SPI_WRITE_2();\
+} while(0)
+
+#define LEPTON_SPI_WRITE_14() do {\
+	LEPTON_SPI_WRITE_12();\
+	LEPTON_SPI_WRITE_2();\
+} while(0)
+
+#define LEPTON_SPI_WRITE_16() do {\
+	LEPTON_SPI_WRITE_14();\
+	LEPTON_SPI_WRITE_2();\
+} while(0)
+
+#define LEPTON_SPI_READ_1() do {\
+	*lepton_frame_pointer++ = LEPTON_SPI->OUTR;\
+} while(0)
+
+#define LEPTON_SPI_READ_2() do {\
+	LEPTON_SPI_READ_1();\
+	LEPTON_SPI_READ_1();\
+} while(0)
+
+#define LEPTON_SPI_READ_4() do {\
+	LEPTON_SPI_READ_2();\
+	LEPTON_SPI_READ_2();\
+} while(0)
+
+#define LEPTON_SPI_READ_6() do {\
+	LEPTON_SPI_READ_4();\
+	LEPTON_SPI_READ_2();\
+} while(0)
+
+#define LEPTON_SPI_READ_8() do {\
+	LEPTON_SPI_READ_6();\
+	LEPTON_SPI_READ_2();\
+} while(0)
+
+#define LEPTON_SPI_READ_10() do {\
+	LEPTON_SPI_READ_8();\
+	LEPTON_SPI_READ_2();\
+} while(0)
+
+#define LEPTON_SPI_READ_12() do {\
+	LEPTON_SPI_READ_10();\
+	LEPTON_SPI_READ_2();\
+} while(0)
+
+#define LEPTON_SPI_READ_14() do {\
+	LEPTON_SPI_READ_12();\
+	LEPTON_SPI_READ_2();\
+} while(0)
+
+#define LEPTON_SPI_READ_16() do {\
+	LEPTON_SPI_READ_14();\
+	LEPTON_SPI_READ_2();\
+} while(0)
+
+#define LEPTON_SPI_REMOVE_1() do {\
+	LEPTON_SPI->OUTR;\
+	lepton_frame_pointer_dummy++;\
+} while(0)
+
+#define LEPTON_SPI_REMOVE_2() do {\
+	LEPTON_SPI_REMOVE_1();\
+	LEPTON_SPI_REMOVE_1();\
+} while(0)
+
+#define LEPTON_SPI_REMOVE_4() do {\
+	LEPTON_SPI_REMOVE_2();\
+	LEPTON_SPI_REMOVE_2();\
+} while(0)
+
+#define LEPTON_SPI_REMOVE_6() do {\
+	LEPTON_SPI_REMOVE_4();\
+	LEPTON_SPI_REMOVE_2();\
+} while(0)
+
+#define LEPTON_SPI_REMOVE_8() do {\
+	LEPTON_SPI_REMOVE_6();\
+	LEPTON_SPI_REMOVE_2();\
+} while(0)
+
+#define LEPTON_SPI_REMOVE_10() do {\
+	LEPTON_SPI_REMOVE_8();\
+	LEPTON_SPI_REMOVE_2();\
+} while(0)
+
+#define LEPTON_SPI_REMOVE_12() do {\
+	LEPTON_SPI_REMOVE_10();\
+	LEPTON_SPI_REMOVE_2();\
+} while(0)
+
+#define LEPTON_SPI_REMOVE_14() do {\
+	LEPTON_SPI_REMOVE_12();\
+	LEPTON_SPI_REMOVE_2();\
+} while(0)
+
+#define LEPTON_SPI_REMOVE_16() do {\
+	LEPTON_SPI_REMOVE_14();\
+	LEPTON_SPI_REMOVE_2();\
+} while(0)
+
+typedef enum {
+	LEPTON_IRQ_STATE_SYNC,
+	LEPTON_IRQ_STATE_DATA
+} LeptonIRQState;
+
+static LeptonIRQState lepton_irq_state = LEPTON_IRQ_STATE_SYNC;
+
+void __attribute__((optimize("-O3"))) lepton_sync_handler(void) {
+	if(lepton.sync_done) {
+		if(lepton.state == LEPTON_STATE_READ_FRAME) {
+			XMC_USIC_CH_RXFIFO_SetInterruptNodePointer(LEPTON_SPI, XMC_USIC_CH_RXFIFO_INTERRUPT_NODE_POINTER_STANDARD, LEPTON_SERVICE_REQUEST_READ_RX);   // IRQ LEPTON_IRQ_READ_RX
+			NVIC_DisableIRQ((IRQn_Type)LEPTON_IRQ_REMOVE_RX);
+			NVIC_EnableIRQ((IRQn_Type)LEPTON_IRQ_READ_RX);
+			lepton_frame_pointer = lepton_frame_start;
+		} else {
+			XMC_USIC_CH_RXFIFO_SetInterruptNodePointer(LEPTON_SPI, XMC_USIC_CH_RXFIFO_INTERRUPT_NODE_POINTER_STANDARD, LEPTON_SERVICE_REQUEST_REMOVE_RX); // IRQ LEPTON_IRQ_REMOVE_RX
+			NVIC_DisableIRQ((IRQn_Type)LEPTON_IRQ_READ_RX);
+			NVIC_EnableIRQ((IRQn_Type)LEPTON_IRQ_REMOVE_RX);
+			lepton_frame_pointer_dummy = lepton_frame_start;
+		}
+		XMC_GPIO_SetOutputLow(LEPTON_SELECT_PIN);
+
+		LEPTON_SET_SPI_LIMIT(15);
+		lepton_irq_state = LEPTON_IRQ_STATE_SYNC;
+		LEPTON_SPI_WRITE_16();
 	}
+}
 
-//	XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
+void __attribute__((optimize("-O3"))) lepton_rx_read_irq_handler(void) {
+	if(lepton_irq_state == LEPTON_IRQ_STATE_SYNC) {
+		LEPTON_SPI_READ_2();
+		if(lepton_frame_pointer != lepton_frame_end_of_first_packet) {
+			LEPTON_SPI_READ_14();
+			LEPTON_SPI_WRITE_2();
+			if(lepton_frame_pointer != lepton_frame_first_packet_last_full) {
+				LEPTON_SPI_WRITE_14();
+			} else {
+				LEPTON_SET_SPI_LIMIT(1);
+			}
+		} else {
+			if((lepton.frame.data.packets[0].vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) == LEPTON_SPI_DISCARD_PACKET_ID_MASK) {
+				lepton_frame_pointer = lepton_frame_start;
+			} else {
+				lepton_irq_state = LEPTON_IRQ_STATE_DATA;
+			}
+			LEPTON_SET_SPI_LIMIT(15);
+			LEPTON_SPI_WRITE_16();
+		}
+	} else {
+		LEPTON_SPI_READ_12();
+		if(lepton_frame_pointer != lepton_frame_end) {
+			// Write 10 words already before we read the next 4, we can save some waiting time between packets with this.
+			// We don't write the full 12 bytes, we may get an early interrupt if we do.
+			LEPTON_SPI_WRITE_10();
+			LEPTON_SPI_READ_4();
+			LEPTON_SPI_WRITE_2();
+			if(lepton_frame_pointer != lepton_frame_last_full) {
+				LEPTON_SPI_WRITE_4();
+			} else {
+				LEPTON_SET_SPI_LIMIT(11);
+			}
+		} else {
+			lepton.state = LEPTON_STATE_WRITE_FRAME;
+			lepton.config_handle_now = true;
+			XMC_GPIO_SetOutputHigh(LEPTON_SELECT_PIN);
+		}
+	}
+}
+
+void __attribute__((optimize("-O3"))) lepton_rx_remove_irq_handler(void) {
+	if(lepton_irq_state == LEPTON_IRQ_STATE_SYNC) {
+		LEPTON_SPI_REMOVE_2();
+		if(lepton_frame_pointer_dummy != lepton_frame_end_of_first_packet) {
+			LEPTON_SPI_REMOVE_14();
+			LEPTON_SPI_WRITE_2();
+			if(lepton_frame_pointer_dummy != lepton_frame_first_packet_last_full) {
+				LEPTON_SPI_WRITE_14();
+			} else {
+				LEPTON_SET_SPI_LIMIT(1);
+			}
+		} else {
+			if((lepton.frame.data.packets[0].vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) == LEPTON_SPI_DISCARD_PACKET_ID_MASK) {
+				lepton_frame_pointer_dummy = lepton_frame_start;
+			} else {
+				lepton_irq_state = LEPTON_IRQ_STATE_DATA;
+			}
+			LEPTON_SET_SPI_LIMIT(15);
+			LEPTON_SPI_WRITE_16();
+		}
+	} else {
+		LEPTON_SPI_REMOVE_12();
+		if(lepton_frame_pointer_dummy != lepton_frame_end) {
+			// Write 10 words already before we read the next 4, we can save some waiting time between packets with this.
+			// We don't write the full 12 bytes, we may get an early interrupt if we do.
+			LEPTON_SPI_WRITE_10();
+			LEPTON_SPI_REMOVE_4();
+			LEPTON_SPI_WRITE_2();
+			if(lepton_frame_pointer_dummy != lepton_frame_last_full) {
+				LEPTON_SPI_WRITE_4();
+			} else {
+				LEPTON_SET_SPI_LIMIT(11);
+			}
+		} else {
+			XMC_GPIO_SetOutputHigh(LEPTON_SELECT_PIN);
+		}
+	}
 }
 
 void lepton_i2c_write(Lepton *lepton, const uint16_t reg, const uint16_t length, const uint16_t *data, bool send_stop) {
@@ -175,13 +392,11 @@ void lepton_i2c_read(Lepton *lepton, const uint16_t reg, const uint32_t length, 
 }
 
 void lepton_spi_select(Lepton *lepton) {
-//	XMC_SPI_CH_EnableSlaveSelect(LEPTON_SPI, XMC_SPI_CH_SLAVE_SELECT_0);
 	XMC_GPIO_SetOutputLow(LEPTON_SELECT_PIN);
 }
 
 void lepton_spi_deselect(Lepton *lepton) {
 	XMC_GPIO_SetOutputHigh(LEPTON_SELECT_PIN);
-//	XMC_SPI_CH_DisableSlaveSelect(LEPTON_SPI);
 }
 
 uint16_t lepton_get_status(Lepton *lepton) {
@@ -320,13 +535,9 @@ void lepton_init_spi(Lepton *lepton) {
 	// Configure receive FIFO
 	XMC_USIC_CH_RXFIFO_Configure(LEPTON_SPI, 32, XMC_USIC_CH_FIFO_SIZE_16WORDS, 15);
 
-	// Set service request for rx FIFO receive interrupt
-	XMC_USIC_CH_RXFIFO_SetInterruptNodePointer(LEPTON_SPI, XMC_USIC_CH_RXFIFO_INTERRUPT_NODE_POINTER_STANDARD, LEPTON_SERVICE_REQUEST_RX);  // IRQ LEPTON_IRQ_RX
-//	XMC_USIC_CH_RXFIFO_SetInterruptNodePointer(LEPTON_SPI, XMC_USIC_CH_RXFIFO_INTERRUPT_NODE_POINTER_ALTERNATE, LEPTON_SERVICE_REQUEST_RX); // IRQ LEPTON_IRQ_RX
-
 	// Set priority and enable NVIC node for receive interrupt
-	NVIC_SetPriority((IRQn_Type)LEPTON_IRQ_RX, LEPTON_IRQ_RX_PRIORITY);
-	NVIC_EnableIRQ((IRQn_Type)LEPTON_IRQ_RX);
+	NVIC_SetPriority((IRQn_Type)LEPTON_IRQ_READ_RX, LEPTON_IRQ_RX_PRIORITY);
+	NVIC_SetPriority((IRQn_Type)LEPTON_IRQ_REMOVE_RX, LEPTON_IRQ_RX_PRIORITY);
 
 	// Start SPI
 	XMC_SPI_CH_Start(LEPTON_SPI);
@@ -344,6 +555,14 @@ void lepton_init_spi(Lepton *lepton) {
 
 void lepton_init_i2c(Lepton *lepton) {
 	XMC_SPI_CH_Stop(LEPTON_SPI);
+
+	const XMC_GPIO_CONFIG_t select_pin_config = {
+		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL, // we set cs high/low by hand
+		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
+	};
+
+	XMC_GPIO_Init(LEPTON_SELECT_PIN, &select_pin_config);
+	lepton_spi_deselect(lepton);
 
 	const XMC_I2C_CH_CONFIG_t master_channel_config = {
 		.baudrate = LEPTON_I2C_BAUDRATE,
@@ -376,19 +595,40 @@ void lepton_init_i2c(Lepton *lepton) {
 }
 
 void lepton_init_gpio(Lepton *lepton) {
-	const XMC_GPIO_CONFIG_t sync_pin_config = {
-		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
-		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH,
-		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD
-	};
-
 	const XMC_GPIO_CONFIG_t nreset_pin_config = {
 		.mode         = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
 		.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW,
 	};
-
-	XMC_GPIO_Init(LEPTON_SYNC_PIN,   &sync_pin_config);
 	XMC_GPIO_Init(LEPTON_NRESET_PIN, &nreset_pin_config);
+
+	const XMC_GPIO_CONFIG_t sync_pin_config = {
+		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
+		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD
+	};
+	XMC_GPIO_Init(P0_0, &sync_pin_config); // TODO: Remove me for release version
+
+	const XMC_ERU_ETL_CONFIG_t sync_etl_config = {
+		.input_a                = (uint32_t)XMC_ERU_ETL_INPUT_A0,
+		.input_b                = (uint32_t)XMC_ERU_ETL_INPUT_B0,
+		.enable_output_trigger  = (uint32_t)1,
+		.edge_detection         = XMC_ERU_ETL_EDGE_DETECTION_RISING,
+		.output_trigger_channel = XMC_ERU_ETL_OUTPUT_TRIGGER_CHANNEL0, // Select the source for event
+		.source                 = XMC_ERU_ETL_SOURCE_B
+	};
+
+	// Initializes input pin characteristics
+	XMC_GPIO_Init(LEPTON_SYNC_PIN, &sync_pin_config); // Currently P2_2
+	// ERU Event Trigger Logic Hardware initialization based on UI
+	XMC_ERU_ETL_Init(XMC_ERU0, LEPTON_SYNC_ETL_CHANNEL, &sync_etl_config);
+	// OGU is configured to generate event on configured trigger edge
+	XMC_ERU_OGU_SetServiceRequestMode(XMC_ERU0, LEPTON_SYNC_OGU_CHANNEL, XMC_ERU_OGU_SERVICE_REQUEST_ON_TRIGGER);
+	// Configure NVIC node and priority
+	NVIC_SetPriority(LEPTON_SYNC_IRQ_N, LEPTON_SYNC_IRQ_PRIO);
+
+	// Clear pending interrupt before enabling it
+	NVIC_ClearPendingIRQ(LEPTON_SYNC_IRQ_N);
+	// Enable NVIC node
+	NVIC_EnableIRQ(LEPTON_SYNC_IRQ_N);
 }
 
 void lepton_init(Lepton *lepton) {
@@ -399,11 +639,11 @@ void lepton_init(Lepton *lepton) {
 	lepton_reset(lepton);
 	XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 }
-
+#if 0
 bool lepton_check_crc_of_packet(Lepton *lepton) {
 	// First sanity check the id.
 	if(((lepton->packet.vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) != LEPTON_SPI_DISCARD_PACKET_ID_MASK) &&
-	   ((lepton->packet.vospi.id & 0x00FF) > LEPTON_PIXEL_ROWS)) {
+	   ((lepton->packet.vospi.id & 0x00FF) > LEPTON_FRAME_LINES)) {
 		return false;
 	}
 
@@ -446,19 +686,20 @@ void lepton_copy_packet_to_buffer(Lepton *lepton) {
 		return;
 	}
 
-	const uint32_t start_index = LEPTON_PIXEL_ROWS*lepton->packet_next_id;
-	for(uint8_t i = 0; i < LEPTON_PIXEL_ROWS; i++) {
+	const uint32_t start_index = LEPTON_FRAME_LINES*lepton->packet_next_id;
+	for(uint8_t i = 0; i < LEPTON_FRAME_LINES; i++) {
 		lepton->image_buffer[start_index + i] = lepton->packet.vospi.payload[i];
 	}
 
 	lepton->packet_next_id++;
 
-	lepton->image_buffer_receive_index = start_index + LEPTON_PIXEL_ROWS;
+	lepton->image_buffer_receive_index = start_index + LEPTON_FRAME_LINES;
 	if(lepton->image_buffer_receive_index == LEPTON_IMAGE_BUFFER_SIZE) {
 		lepton->state = LEPTON_STATE_WAIT_FOR_SEND;
 		lepton->packet_next_id = 0;
 	}
 }
+#endif
 
 
 void lepton_handle_reset(Lepton *lepton) {
@@ -491,6 +732,21 @@ void lepton_handle_init(Lepton *lepton) {
 	uint32_t enable = 1;
 	lepton_attribute_write(lepton, LEPTON_CID_AGC_ENABLE_STATE, 2, (uint16_t*)&enable);
 
+	uint32_t telemetry_location = 1; // footer
+	lepton_attribute_write(lepton, LEPTON_CID_SYS_TELEMETRY_LOCATION, 2, (uint16_t*)&telemetry_location);
+
+	uint32_t telemetry_enable = 1;
+	lepton_attribute_write(lepton, LEPTON_CID_SYS_TELEMETRY_ENABLE_STATE, 2, (uint16_t*)&telemetry_enable);
+
+	uint32_t oem_status = 1;
+	while(oem_status != 0) {
+		lepton_attribute_read(lepton, (0x4000 + 0x0800 + 0x48), 2, (uint16_t*)&oem_status);
+	}
+	uint32_t gpio_mode = 5; // vsync
+	lepton_attribute_write(lepton, (0x4000 + 0x0800 + 0x54), 2, (uint16_t*)&gpio_mode);
+	while(oem_status != 0) {
+		lepton_attribute_read(lepton, (0x4000 + 0x0800 + 0x48), 2, (uint16_t*)&oem_status);
+	}
 	lepton->state = LEPTON_STATE_SYNC;
 }
 
@@ -512,114 +768,28 @@ void lepton_handle_sync(Lepton *lepton) {
 		lepton_spi_deselect(lepton);
 
 		lepton->sync_start_time = 0;
-		lepton->state = LEPTON_STATE_READ_PACKET;
+		lepton->state = LEPTON_STATE_READ_FRAME;
+		lepton->sync_done = true;
 	}
 }
 
-void lepton_handle_read_packet(Lepton *lepton) {
-	// Check if packet is at the end and FIFO has less than 8 words
-	// In this case we don't get any interrupts anymore, we read the
-	// data directly
-
-	if(lepton_packet_pointer >= lepton_packet_last_full) {
-//		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
-//		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
-//		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
-		while(!XMC_USIC_CH_RXFIFO_IsEmpty(LEPTON_SPI)) {
-			*lepton_packet_pointer++ = LEPTON_SPI->OUTR;
-		}
-//		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
-//		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
-//		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
-	}
-
-	// If we send a whole packet of SPI clocks and we reached the end of our
-	// packet pointer, we are done with this packet and can copy it
-	if(lepton->packet_index > 0) {
-		if(lepton_packet_pointer == lepton_packet_end) {
-			lepton->packet_index = 0;
-			lepton_packet_pointer = lepton_packet_start;
-			lepton_spi_deselect(lepton);
-
-			// The next state depends on the result of the copying,
-			// so the copy function will set the next state itself.
-			// If no new state is set, we will keep on receiving packets
-			lepton_copy_packet_to_buffer(lepton);
-		}
-		return;
-	}
-
-	// If the current packet index is 0, we have not yet started to read this
-	// packet and we still have to enable the SPI chip select
-	if(lepton->packet_index == 0) {
-		// TODO: Start timeout for a maximum time a packet should take
-		//       if timeout is broken, reset state machine and re-sync
-		lepton_spi_select(lepton);
-		lepton->packet_index = 16;
-		for(uint8_t i = 0; i < 16; i++) {
-			LEPTON_SPI->IN[0] = 0;
-		}
-	}
-
-	// Put 0 into SPI FIFO until it is full (this is just here to generate a
-	// clock, there is no MOSI connected to anything)
-#if 0
-	while(lepton->packet_index < LEPTON_PACKET_SIZE && !XMC_USIC_CH_TXFIFO_IsFull(LEPTON_SPI)) {
-		LEPTON_SPI->IN[0] = 0;
-		lepton->packet_index++;
-	}
-#endif
-}
-
-void lepton_handle_configure(Lepton *lepton) {
-
-}
-
-void lepton_handle_wait_for_send(Lepton *lepton) {
-	if(lepton->image_buffer_stream_index == LEPTON_IMAGE_BUFFER_SIZE) {
-		lepton->image_buffer_stream_index = 0;
-		lepton->image_buffer_receive_index = 0;
-		lepton->packet_next_id = 0;
-		lepton->state = LEPTON_STATE_READ_PACKET;
+void lepton_handle_configuration(Lepton *lepton) {
+	if(lepton->config_handle_now) {
+		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
+		lepton->config_handle_now = false;
+		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 	}
 }
 
-uint32_t last_time = 0;
+
 
 void lepton_tick(Lepton *lepton) {
 	switch(lepton->state) {
 		case LEPTON_STATE_RESET: lepton_handle_reset(lepton); break;
 		case LEPTON_STATE_INIT: lepton_handle_init(lepton); break;
 		case LEPTON_STATE_SYNC:  lepton_handle_sync(lepton); break;
-		case LEPTON_STATE_READ_PACKET: lepton_handle_read_packet(lepton); break;
-		case LEPTON_STATE_CONFIGURE: lepton_handle_configure(lepton); break;
-		case LEPTON_STATE_WAIT_FOR_SEND: lepton_handle_wait_for_send(lepton); break;
-	}
-
-
-	if(system_timer_is_time_elapsed_ms(last_time, 1000)) {
-		last_time = system_timer_get_ms();
-
-
-#if 0
-		uint32_t enable_state;
-		lepton_attribute_read(lepton, LEPTON_CID_AGC_ENABLE_STATE, 2, (uint16_t*)&enable_state);
-		uartbb_puts("es: "); uartbb_putu(enable_state); uartbb_putnl();
-
-		uint32_t policy;
-		lepton_attribute_read(lepton, LEPTON_CID_AGC_POLICY, 2, (uint16_t*)&policy);
-		uartbb_puts("p: "); uartbb_putu(policy); uartbb_putnl();
-
-		LeptonAGCHistogramStatistics hist;
-
-		lepton_attribute_read(lepton, LEPTON_CID_AGC_STATISTICS, 4, (uint16_t*)&hist);
-		uartbb_puts("st: ");
-		uartbb_putu(hist.min_intensity); uartbb_puts(" ");
-		uartbb_putu(hist.max_intensity); uartbb_puts(" ");
-		uartbb_putu(hist.mean_intensity); uartbb_puts(" ");
-		uartbb_putu(hist.num_pixels); uartbb_puts(" ");
-		uartbb_putnl();
-#endif
+		case LEPTON_STATE_READ_FRAME:
+		case LEPTON_STATE_WRITE_FRAME: lepton_handle_configuration(lepton); break;
 	}
 }
 

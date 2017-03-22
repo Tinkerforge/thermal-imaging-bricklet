@@ -312,14 +312,19 @@ typedef struct {
     uint16_t end_row;
 } LeptonVIDFocusROI;
 
-#define LEPTON_PIXEL_LINES 60
-#define LEPTON_PIXEL_ROWS 80
+#define LEPTON_FRAME_ROWS 60
+#define LEPTON_FRAME_LINES 80
 
 #define LEPTON_SPI_PACKET_ID_MASK 0x0FFF
 #define LEPTON_SPI_DISCARD_PACKET_ID_MASK 0xF00
-#define LEPTON_PACKET_PAYLOAD_SIZE (160/sizeof(uint16_t))
-#define LEPTON_IMAGE_BUFFER_SIZE (LEPTON_PIXEL_LINES*LEPTON_PIXEL_ROWS)
-#define LEPTON_PACKET_SIZE (164/sizeof(uint16_t))
+#define LEPTON_PACKET_PAYLOAD_SIZE LEPTON_FRAME_LINES
+#define LEPTON_IMAGE_BUFFER_SIZE (LEPTON_FRAME_ROWS*LEPTON_FRAME_LINES)
+#define LEPTON_CRC_SIZE 1
+#define LEPTON_ID_SIZE  1
+#define LEPTON_PACKET_SIZE (LEPTON_FRAME_LINES + LEPTON_CRC_SIZE + LEPTON_ID_SIZE)
+#define LEPTON_FRAME_SIZE (LEPTON_PACKET_SIZE*LEPTON_FRAME_ROWS)
+#define LEPTON_TELEMETRY_SIZE (LEPTON_PACKET_SIZE*3)
+#define LEPTON_FRAME_SIZE_WITH_TELEMETRY (LEPTON_FRAME_SIZE + LEPTON_TELEMETRY_SIZE)
 
 typedef enum {
 	LEPTON_INTERFACE_SPI,
@@ -330,9 +335,8 @@ typedef enum {
 	LEPTON_STATE_RESET,
 	LEPTON_STATE_INIT,
 	LEPTON_STATE_SYNC,
-	LEPTON_STATE_READ_PACKET,
-	LEPTON_STATE_CONFIGURE,
-	LEPTON_STATE_WAIT_FOR_SEND
+	LEPTON_STATE_READ_FRAME,
+	LEPTON_STATE_WRITE_FRAME,
 } LeptonState;
 
 typedef union {
@@ -345,19 +349,96 @@ typedef union {
 	uint16_t buffer[LEPTON_PACKET_SIZE];
 } LeptonPacket;
 
+typedef union {
+	struct {
+		uint16_t revision;
+		uint32_t uptime; // in ms
+		uint32_t status;
+		uint16_t module_serial_number[8];
+		uint16_t software_revision[4];
+		uint16_t reserved1[3];
+		uint32_t frame_counter;
+		uint16_t frame_mean;
+		uint16_t fpa_temperature_counts;
+		uint16_t fpa_temperature_kelvin;
+		uint16_t housing_temperature_counts;
+		uint16_t housing_temperature_kelvin;
+		uint16_t reserved2[2];
+		uint16_t fpa_temperature_at_last_ffc_kelvin;
+		uint32_t time_counter_at_last_ffc;
+		uint16_t housing_temperature_at_last_ffc;
+		uint16_t reserved3;
+		uint16_t agc_roi[4]; // top, left, bottom, right
+		uint16_t agc_clip_limit_high;
+		uint16_t agc_clip_limit_low;
+		uint16_t reserved4[32];
+		uint32_t video_output_format;
+		uint16_t log2_of_ffc_frames;
+		uint16_t reserved5[5];
+		uint16_t reserved6[19];
+		uint16_t emissivity;
+		uint16_t background_temperature_kelvin;
+		uint16_t atmospheric_transmission;
+		uint16_t atmospheric_temperature_kelvin;
+		uint16_t window_transmission;
+		uint16_t window_reflection;
+		uint16_t window_temperature_kelvin;
+		uint16_t window_reflected_temperature_kelvin;
+		uint16_t reserved7[53];
+		uint16_t reserved8[5];
+		uint16_t gain_mode;
+		uint16_t effective_gain;
+		uint16_t gain_mode_desired_flag;
+		uint16_t temperature_gain_mode_threshold_high_to_low_degc;
+		uint16_t temperature_gain_mode_threshold_low_to_high_degc;
+		uint16_t temperature_gain_mode_threshold_high_to_low_kelvin;
+		uint16_t temperature_gain_mode_threshold_low_to_high_kelvin;
+		uint16_t reserved9[2];
+		uint16_t population_gain_mode_threshold_high_to_low;
+		uint16_t population_gain_mode_threshold_low_to_high;
+		uint16_t reserved10[6];
+		uint16_t gain_mode_roi[4]; // start row, start col, end row, end col
+		uint16_t reserved11[22];
+		uint16_t tlinear_enable_state;
+		uint16_t tlinear_resolution;
+		uint16_t spotmeter_mean;
+		uint16_t spotmeter_maximum;
+		uint16_t spotmeter_minimum;
+		uint16_t spotmeter_population;
+		uint16_t spotmeter_roi_start_row;
+		uint16_t spotmeter_roi_start_col;
+		uint16_t spotmeter_roi_end_row;
+		uint16_t spotmeter_roi_end_col;
+		uint16_t reserved12[22];
+	} __attribute__((__packed__)) data;
+	uint16_t buffer[LEPTON_PACKET_SIZE*3];
+} LeptonTelemetry;
+
+typedef union {
+	struct {
+		LeptonPacket packets[LEPTON_FRAME_ROWS];
+		LeptonTelemetry telemetry;
+	} __attribute__((__packed__)) data;
+	uint16_t buffer[LEPTON_FRAME_SIZE_WITH_TELEMETRY];
+} LeptonFrame;
+
 typedef struct {
 	LeptonState state;
 	uint32_t reset_start_time; // Set to 0 if reset finished
 	uint32_t boot_start_time;  // Set to 0 if boot finished
 	uint32_t sync_start_time;
+	bool     sync_done;
 	LeptonInterface lepton_active_interface;
+
+	uint8_t current_callback_config;
+	uint32_t config_agc_new_bitmask;
+	bool config_handle_now;
 
 	uint32_t packet_next_id;
 	uint32_t image_buffer_stream_index;
 	uint32_t image_buffer_receive_index;
-	uint8_t image_buffer[LEPTON_IMAGE_BUFFER_SIZE];
 	uint32_t packet_index;
-	LeptonPacket packet;
+	LeptonFrame frame;
 } Lepton;
 
 void lepton_init(Lepton *lepton);
