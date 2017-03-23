@@ -27,7 +27,7 @@
 #define LEPTON_RESET_TIME           100
 #define LEPTON_BOOTUP_TIME          1000 // Datasheet says we need to wait at least 950ms
 
-#define LEPTON_SPI_BAUDRATE         4400000 // Use double the minimum speed, so we have half a frame time for other stuff inbetween
+#define LEPTON_SPI_BAUDRATE         8000000 // Use double the minimum speed, so we have half a frame time for other stuff inbetween
 #define LEPTON_SPI_CHANNEL          USIC0_CH1
 #define LEPTON_SPI                  XMC_SPI0_CH1
 
@@ -58,12 +58,20 @@
 #define LEPTON_SDA_INPUT            XMC_USIC_CH_INPUT_DX0
 #define LEPTON_SDA_SOURCE           1
 
-#define LEPTON_SYNC_PIN             P0_0
+#define LEPTON_SYNC_PIN             P2_9
 #define LEPTON_NRESET_PIN           P0_5
 
-#define LEPTON_SERVICE_REQUEST_RX   2
+#define LEPTON_SYNC_ETL_CHANNEL     3
+#define LEPTON_SYNC_OGU_CHANNEL     0
 
-#define LEPTON_IRQ_RX               11
+#define LEPTON_SYNC_IRQ_N           3
+#define LEPTON_SYNC_IRQ_PRIO        1
+
+#define LEPTON_SERVICE_REQUEST_READ_RX   2
+#define LEPTON_SERVICE_REQUEST_REMOVE_RX 3
+
+#define LEPTON_IRQ_READ_RX          11
+#define LEPTON_IRQ_REMOVE_RX        12
 #define LEPTON_IRQ_RX_PRIORITY      0
 
 #endif

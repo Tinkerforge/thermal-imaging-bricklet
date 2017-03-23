@@ -33,7 +33,9 @@ void communication_tick(void);
 void communication_init(void);
 
 // Constants
-
+#define THERMAL_IMAGING_CALLBACK_CONFIG_MANUAL 0
+#define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_GREY_SCALE_IMAGE 1
+#define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_TEMPERATURE_IMAGE 2
 
 // Function and callback IDs and structs
 #define FID_SET_CALLBACK_CONFIG 1

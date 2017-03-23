@@ -38,7 +38,6 @@ int main(void) {
 	uartbb_puts("Start Thermal Imaging Bricklet\n\r");
 
 	lepton_init(&lepton);
-	communication_callback_init();
 
 	while(true) {
 		bootloader_tick();
