@@ -459,6 +459,11 @@ void lepton_reset(Lepton *lepton) {
 }
 
 void lepton_init_spi(Lepton *lepton) {
+	if(lepton->active_interface == LEPTON_INTERFACE_SPI) {
+		return;
+	}
+
+	// -- First disable I2C --
 	XMC_I2C_CH_Stop(LEPTON_I2C);
 
 	const XMC_GPIO_CONFIG_t sda_pin_config =  {
@@ -474,6 +479,8 @@ void lepton_init_spi(Lepton *lepton) {
 	XMC_GPIO_Init(LEPTON_SDA_PIN, &sda_pin_config);
 	XMC_GPIO_Init(LEPTON_SCL_PIN, &scl_pin_config);
 
+
+	// -- Then enable SPI --
 
 	// USIC channel configuration
 	const XMC_SPI_CH_CONFIG_t channel_config = {
@@ -529,6 +536,9 @@ void lepton_init_spi(Lepton *lepton) {
 	// SPI Mode: CPOL=1 and CPHA=1
 	LEPTON_SPI_CHANNEL->DX1CR |= USIC_CH_DX1CR_DPOL_Msk;
 
+	XMC_USIC_CH_TXFIFO_Flush(LEPTON_SPI);
+	XMC_USIC_CH_RXFIFO_Flush(LEPTON_SPI);
+
 	// Configure transmit FIFO
 	XMC_USIC_CH_TXFIFO_Configure(LEPTON_SPI, 48, XMC_USIC_CH_FIFO_SIZE_16WORDS, 0);
 
@@ -550,19 +560,44 @@ void lepton_init_spi(Lepton *lepton) {
 
 	XMC_USIC_CH_RXFIFO_EnableEvent(LEPTON_SPI, XMC_USIC_CH_RXFIFO_EVENT_CONF_STANDARD | XMC_USIC_CH_RXFIFO_EVENT_CONF_ALTERNATE);
 
-	lepton->lepton_active_interface = LEPTON_INTERFACE_SPI;
+	lepton->active_interface = LEPTON_INTERFACE_SPI;
 }
 
 void lepton_init_i2c(Lepton *lepton) {
-	XMC_SPI_CH_Stop(LEPTON_SPI);
+	if(lepton->active_interface == LEPTON_INTERFACE_I2C) {
+		return;
+	}
 
-	const XMC_GPIO_CONFIG_t select_pin_config = {
-		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL, // we set cs high/low by hand
+	// -- First disable SPI --
+
+	XMC_SPI_CH_Stop(LEPTON_SPI);
+	lepton_spi_deselect(lepton);
+
+	NVIC_DisableIRQ((IRQn_Type)LEPTON_IRQ_REMOVE_RX);
+	NVIC_DisableIRQ((IRQn_Type)LEPTON_IRQ_READ_RX);
+
+	XMC_USIC_CH_RXFIFO_DisableEvent(LEPTON_SPI, XMC_USIC_CH_RXFIFO_EVENT_CONF_STANDARD | XMC_USIC_CH_RXFIFO_EVENT_CONF_ALTERNATE);
+
+	// MISO pin configuration
+	const XMC_GPIO_CONFIG_t miso_pin_config = {
+		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
+		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD
+	};
+
+	// SCLK pin configuration
+	const XMC_GPIO_CONFIG_t sclk_pin_config = {
+		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
 		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
 	};
 
-	XMC_GPIO_Init(LEPTON_SELECT_PIN, &select_pin_config);
-	lepton_spi_deselect(lepton);
+	XMC_GPIO_Init(LEPTON_SCLK_PIN, &sclk_pin_config);
+	XMC_GPIO_Init(LEPTON_MISO_PIN, &miso_pin_config);
+
+	LEPTON_SPI->SCTR |= USIC_CH_SCTR_PDL_Msk; // Set passive data level to 1
+	LEPTON_SPI_CHANNEL->DX1CR &= ~USIC_CH_DX1CR_DPOL_Msk; // Set input control register back to default
+
+
+	// -- Then enable I2C --
 
 	const XMC_I2C_CH_CONFIG_t master_channel_config = {
 		.baudrate = LEPTON_I2C_BAUDRATE,
@@ -584,14 +619,18 @@ void lepton_init_i2c(Lepton *lepton) {
 	XMC_USIC_CH_SetInputSource(LEPTON_I2C, LEPTON_SDA_INPUT, LEPTON_SDA_SOURCE);
 	XMC_USIC_CH_SetInputSource(LEPTON_I2C, LEPTON_SCL_INPUT, LEPTON_SCL_SOURCE);
 
+	XMC_USIC_CH_TXFIFO_Flush(LEPTON_I2C);
+	XMC_USIC_CH_RXFIFO_Flush(LEPTON_I2C);
+
 	XMC_USIC_CH_TXFIFO_Configure(LEPTON_I2C, 48, XMC_USIC_CH_FIFO_SIZE_16WORDS, 0);
-	XMC_USIC_CH_RXFIFO_Configure(LEPTON_I2C, 32,  XMC_USIC_CH_FIFO_SIZE_16WORDS, 0);
+	XMC_USIC_CH_RXFIFO_Configure(LEPTON_I2C, 32, XMC_USIC_CH_FIFO_SIZE_16WORDS, 0);
+
 	XMC_I2C_CH_Start(LEPTON_I2C);
 
 	XMC_GPIO_Init(LEPTON_SDA_PIN, &sda_pin_config);
 	XMC_GPIO_Init(LEPTON_SCL_PIN, &scl_pin_config);
 
-	lepton->lepton_active_interface = LEPTON_INTERFACE_I2C;
+	lepton->active_interface = LEPTON_INTERFACE_I2C;
 }
 
 void lepton_init_gpio(Lepton *lepton) {
