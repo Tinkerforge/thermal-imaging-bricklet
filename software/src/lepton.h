@@ -118,6 +118,45 @@
 #define LEPTON_CID_VID_GAMMA_SELECT                (uint16_t)(LEPTON_VID_MODULE_BASE + 0x0020)
 #define LEPTON_CID_VID_FREEZE_ENABLE               (uint16_t)(LEPTON_VID_MODULE_BASE + 0x0024)
 
+#define LEPTON_OEM_MODULE_BASE                     (uint16_t)(0x4000 + 0x0800)
+#define LEPTON_CID_OEM_POWER_DOWN                  (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0000)
+#define LEPTON_CID_OEM_FLIR_SYSTEM_PART_NUMBER     (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x001C)
+#define LEPTON_CID_OEM_CAMERA_SOFTWARE_REVISION    (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0020)
+#define LEPTON_CID_OEM_VIDEO_OUTPUT_ENABLE         (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0024)
+#define LEPTON_CID_OEM_VIDEO_OUTPUT_FORMAT_SELECT  (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0028)
+#define LEPTON_CID_OEM_VIDEO_OUTPUT_SOURCE_SELECT  (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x002C)
+#define LEPTON_CID_OEM_CUSTOMER_PART_NUMBER        (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0038)
+#define LEPTON_CID_OEM_VIDEO_OUTPUT_SOURCE         (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x003C)
+#define LEPTON_CID_OEM_RUN_CAMERA_REBOOT           (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0040)
+#define LEPTON_CID_OEM_FFC_NORMALIZATION_TARGET    (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0044)
+#define LEPTON_CID_OEM_STATUS                      (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0048)
+#define LEPTON_CID_OEM_FRAME_MEAN_INTENSITY        (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x004C)
+#define LEPTON_CID_OEM_GPIO_MODE_SELECT            (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0054)
+#define LEPTON_CID_OEM_GPIO_VSYNC_PHASE_DELAY      (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0058)
+#define LEPTON_CID_OEM_USER_DEFAULTS               (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x005C)
+#define LEPTON_CID_OEM_RESTORE_USER_DEFAULTS       (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0060)
+#define LEPTON_CID_OEM_SHUTTER_PROFILE             (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0064)
+#define LEPTON_CID_OEM_THERMAL_SHUTDOWN_ENABLE     (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0068)
+#define LEPTON_CID_OEM_BAD_PIXEL_REPLACEMENT       (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x006C)
+#define LEPTON_CID_OEM_TEMPORAL_FILTER_CONTROL     (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0070)
+#define LEPTON_CID_OEM_COLUMN_NOISE_FILTER         (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0074)
+#define LEPTON_CID_OEM_PIXEL_NOISE_FILTER          (uint16_t)(LEPTON_OEM_MODULE_BASE + 0x0078)
+
+#define LEPTON_RAD_MODULE_BASE                     (uint16_t)(0x4000 + 0x0E00)
+#define LEPTON_CID_RAD_RBFP_EXTERNAL_PARAMETERS    (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x0004)
+#define LEPTON_CID_RAD_RADIOMETRY_CONTROL_ENABLE   (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x0010)
+#define LEPTON_CID_RAD_TSHUTTER_MODE               (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x0024)
+#define LEPTON_CID_RAD_TSHUTTER_TEMPERATURE        (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x0028)
+#define LEPTON_CID_RAD_FFC_NORMALIZATION           (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x002C)
+#define LEPTON_CID_RAD_RUN_STATUS                  (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x0030)
+#define LEPTON_CID_RAD_FLUX_LINEAR_PARAMETERS      (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x00BC)
+#define LEPTON_CID_RAD_TLINEAR_ENABLE_STATE        (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x00C0)
+#define LEPTON_CID_RAD_TLINEAR_RESOLUTION          (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x00C4)
+#define LEPTON_CID_RAD_TLINEAR_AUTO_RESOLUTION     (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x00C8)
+#define LEPTON_CID_RAD_SPOTMETER_ROI               (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x00CC)
+#define LEPTON_CID_RAD_SPOTMETER_VALUE             (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x00D0)
+#define LEPTON_CID_RAD_LOW_GAIN_RBFO_EXTERNAL_PAR  (uint16_t)(LEPTON_RAD_MODULE_BASE + 0x00D8)
+
 typedef enum {
     LEPTON_AGC_LINEAR = 0,
     LEPTON_AGC_HEQ,
@@ -327,6 +366,7 @@ typedef struct {
 #define LEPTON_FRAME_SIZE_WITH_TELEMETRY (LEPTON_FRAME_SIZE + LEPTON_TELEMETRY_SIZE)
 
 typedef enum {
+	LEPTON_INTERFACE_NONE,
 	LEPTON_INTERFACE_SPI,
 	LEPTON_INTERFACE_I2C
 } LeptonInterface;
@@ -338,6 +378,13 @@ typedef enum {
 	LEPTON_STATE_READ_FRAME,
 	LEPTON_STATE_WRITE_FRAME,
 } LeptonState;
+
+typedef struct {
+	uint8_t region_of_interest[4];
+	uint16_t dampening_factor;
+	uint16_t clip_limit[2];
+	uint16_t empty_counts;
+} __attribute__((__packed__)) LeptonAutomaticGainControl;
 
 typedef union {
 	struct {
@@ -422,16 +469,25 @@ typedef union {
 	uint16_t buffer[LEPTON_FRAME_SIZE_WITH_TELEMETRY];
 } LeptonFrame;
 
+typedef enum {
+	LEPTON_CONFIG_AGC_BITMASK_ENABLE           = 1 << 0,
+	LEPTON_CONFIG_AGC_BITMASK_ROI              = 1 << 1,
+	LEPTON_CONFIG_AGC_BITMASK_DAMPENING_FACTOR = 1 << 2,
+	LEPTON_CONFIG_AGC_BITMASK_CLIP_LIMIT       = 1 << 3,
+	LEPTON_CONFIG_AGC_BITMASK_EMPTY_COUNTS     = 1 << 4
+} LeptonConfigAGCBitmask;
+
 typedef struct {
 	LeptonState state;
 	uint32_t reset_start_time; // Set to 0 if reset finished
 	uint32_t boot_start_time;  // Set to 0 if boot finished
 	uint32_t sync_start_time;
 	bool     sync_done;
-	LeptonInterface lepton_active_interface;
+	LeptonInterface active_interface;
 
 	uint8_t current_callback_config;
-	uint32_t config_agc_new_bitmask;
+	uint8_t stream_callback_config;
+	uint32_t config_agc_bitmask;
 	bool config_handle_now;
 
 	uint32_t packet_next_id;
@@ -439,6 +495,8 @@ typedef struct {
 	uint32_t image_buffer_receive_index;
 	uint32_t packet_index;
 	LeptonFrame frame;
+
+	LeptonAutomaticGainControl agc;
 } Lepton;
 
 void lepton_init(Lepton *lepton);
