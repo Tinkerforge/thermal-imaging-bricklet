@@ -61,7 +61,7 @@ bool handle_image_low_level_callback(void) {
 	static bool is_buffered = false;
 	static ImageLowLevelCallback cb;
 	static uint32_t packet_payload_index = 0;
-	static LeptonPacket *lepton_packet = lepton.frame.data.packets;
+	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
 
 	if(!is_buffered) {
 		if(lepton.state != LEPTON_STATE_WRITE_FRAME) {
@@ -87,7 +87,7 @@ bool handle_image_low_level_callback(void) {
 				packet_payload_index++;
 			}
 
-			lepton_packet++;
+			lepton_packet--;
 			packet_payload_index = 0;
 			for(uint8_t i = length_first_packet; i < length; i++) {
 				cb.stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
@@ -104,7 +104,7 @@ bool handle_image_low_level_callback(void) {
 		if(lepton.image_buffer_stream_index == LEPTON_IMAGE_BUFFER_SIZE) {
 			lepton.state = LEPTON_STATE_READ_FRAME;
 			lepton.image_buffer_stream_index = 0;
-			lepton_packet = lepton.frame.data.packets;
+			lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
 			packet_payload_index = 0;
 		}
 	}
@@ -123,7 +123,7 @@ bool handle_raw_image_low_level_callback(void) {
 	static bool is_buffered = false;
 	static RawImageLowLevelCallback cb;
 	static uint32_t packet_payload_index = 0;
-	static LeptonPacket *lepton_packet = lepton.frame.data.packets;
+	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
 
 	if(!is_buffered) {
 		if(lepton.state != LEPTON_STATE_WRITE_FRAME) {
@@ -149,7 +149,7 @@ bool handle_raw_image_low_level_callback(void) {
 				packet_payload_index++;
 			}
 
-			lepton_packet++;
+			lepton_packet--;
 			packet_payload_index = 0;
 			for(uint8_t i = length_first_packet; i < length; i++) {
 				cb.stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
@@ -166,7 +166,7 @@ bool handle_raw_image_low_level_callback(void) {
 		if(lepton.image_buffer_stream_index == LEPTON_IMAGE_BUFFER_SIZE) {
 			lepton.state = LEPTON_STATE_READ_FRAME;
 			lepton.image_buffer_stream_index = 0;
-			lepton_packet = lepton.frame.data.packets;
+			lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
 			packet_payload_index = 0;
 		}
 	}
