@@ -203,24 +203,26 @@ typedef enum {
 static LeptonIRQState lepton_irq_state = LEPTON_IRQ_STATE_SYNC;
 
 void __attribute__((optimize("-O3"))) lepton_sync_handler(void) {
-	if(lepton.sync_done) {
-		if(lepton.state == LEPTON_STATE_READ_FRAME) {
-			XMC_USIC_CH_RXFIFO_SetInterruptNodePointer(LEPTON_SPI, XMC_USIC_CH_RXFIFO_INTERRUPT_NODE_POINTER_STANDARD, LEPTON_SERVICE_REQUEST_READ_RX);   // IRQ LEPTON_IRQ_READ_RX
-			NVIC_DisableIRQ((IRQn_Type)LEPTON_IRQ_REMOVE_RX);
-			NVIC_EnableIRQ((IRQn_Type)LEPTON_IRQ_READ_RX);
-			lepton_frame_pointer = lepton_frame_start;
-		} else {
-			XMC_USIC_CH_RXFIFO_SetInterruptNodePointer(LEPTON_SPI, XMC_USIC_CH_RXFIFO_INTERRUPT_NODE_POINTER_STANDARD, LEPTON_SERVICE_REQUEST_REMOVE_RX); // IRQ LEPTON_IRQ_REMOVE_RX
-			NVIC_DisableIRQ((IRQn_Type)LEPTON_IRQ_READ_RX);
-			NVIC_EnableIRQ((IRQn_Type)LEPTON_IRQ_REMOVE_RX);
-			lepton_frame_pointer_dummy = lepton_frame_start;
-		}
-		XMC_GPIO_SetOutputLow(LEPTON_SELECT_PIN);
-
-		LEPTON_SET_SPI_LIMIT(15);
-		lepton_irq_state = LEPTON_IRQ_STATE_SYNC;
-		LEPTON_SPI_WRITE_16();
+	if(!lepton.sync_done || lepton.active_interface != LEPTON_INTERFACE_SPI) {
+		return;
 	}
+
+	if(lepton.state == LEPTON_STATE_READ_FRAME) {
+		XMC_USIC_CH_RXFIFO_SetInterruptNodePointer(LEPTON_SPI, XMC_USIC_CH_RXFIFO_INTERRUPT_NODE_POINTER_STANDARD, LEPTON_SERVICE_REQUEST_READ_RX);   // IRQ LEPTON_IRQ_READ_RX
+		NVIC_DisableIRQ((IRQn_Type)LEPTON_IRQ_REMOVE_RX);
+		NVIC_EnableIRQ((IRQn_Type)LEPTON_IRQ_READ_RX);
+		lepton_frame_pointer = lepton_frame_start;
+	} else {
+		XMC_USIC_CH_RXFIFO_SetInterruptNodePointer(LEPTON_SPI, XMC_USIC_CH_RXFIFO_INTERRUPT_NODE_POINTER_STANDARD, LEPTON_SERVICE_REQUEST_REMOVE_RX); // IRQ LEPTON_IRQ_REMOVE_RX
+		NVIC_DisableIRQ((IRQn_Type)LEPTON_IRQ_READ_RX);
+		NVIC_EnableIRQ((IRQn_Type)LEPTON_IRQ_REMOVE_RX);
+		lepton_frame_pointer_dummy = lepton_frame_start;
+	}
+	XMC_GPIO_SetOutputLow(LEPTON_SELECT_PIN);
+
+	LEPTON_SET_SPI_LIMIT(15);
+	lepton_irq_state = LEPTON_IRQ_STATE_SYNC;
+	LEPTON_SPI_WRITE_16();
 }
 
 void __attribute__((optimize("-O3"))) lepton_rx_read_irq_handler(void) {
