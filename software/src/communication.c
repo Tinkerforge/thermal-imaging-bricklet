@@ -42,7 +42,10 @@ BootloaderHandleMessageResponse set_callback_config(const SetCallbackConfig *dat
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
-	lepton.current_callback_config = data->callback_config;
+	if(lepton.current_callback_config != data->callback_config) {
+		lepton.config_agc_bitmask |= LEPTON_CONFIG_AGC_BITMASK_ENABLE;
+		lepton.current_callback_config = data->callback_config;
+	}
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
@@ -106,6 +109,7 @@ bool handle_image_low_level_callback(void) {
 			lepton.image_buffer_stream_index = 0;
 			lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
 			packet_payload_index = 0;
+			lepton.stream_callback_config = lepton.current_callback_config;
 		}
 	}
 
@@ -168,6 +172,7 @@ bool handle_raw_image_low_level_callback(void) {
 			lepton.image_buffer_stream_index = 0;
 			lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
 			packet_payload_index = 0;
+			lepton.stream_callback_config = lepton.current_callback_config;
 		}
 	}
 
