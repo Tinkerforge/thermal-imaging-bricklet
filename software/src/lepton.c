@@ -303,6 +303,7 @@ void __attribute__((optimize("-O3"))) lepton_rx_remove_irq_handler(void) {
 			}
 		} else {
 			XMC_GPIO_SetOutputHigh(LEPTON_SELECT_PIN);
+			lepton.config_handle_now = true;
 		}
 	}
 }
