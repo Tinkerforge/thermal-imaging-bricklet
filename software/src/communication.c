@@ -36,8 +36,9 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 }
 
 
+
 BootloaderHandleMessageResponse set_callback_config(const SetCallbackConfig *data) {
-	if(data->callback_config > THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_TEMPERATURE_IMAGE) {
+	if(data->callback_config > THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_RAW_IMAGE) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -56,9 +57,9 @@ BootloaderHandleMessageResponse get_callback_config(const GetCallbackConfig *dat
 
 
 
-bool handle_grey_scale_image_low_level_callback(void) {
+bool handle_image_low_level_callback(void) {
 	static bool is_buffered = false;
-	static GreyScaleImageLowLevelCallback cb;
+	static ImageLowLevelCallback cb;
 	static uint32_t packet_payload_index = 0;
 	static LeptonPacket *lepton_packet = lepton.frame.data.packets;
 
@@ -76,7 +77,7 @@ bool handle_grey_scale_image_low_level_callback(void) {
 			return false;
 		}
 
-		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(GreyScaleImageLowLevelCallback), FID_CALLBACK_GREY_SCALE_IMAGE_LOW_LEVEL);
+		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(ImageLowLevelCallback), FID_CALLBACK_IMAGE_LOW_LEVEL);
 		cb.stream_chunk_offset = lepton.image_buffer_stream_index;
 
 		if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
@@ -109,7 +110,7 @@ bool handle_grey_scale_image_low_level_callback(void) {
 	}
 
 	if(bootloader_spitfp_is_send_possible(&bootloader_status.st)) {
-		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(GreyScaleImageLowLevelCallback));
+		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(ImageLowLevelCallback));
 		is_buffered = false;
 		return true;
 	} else {
@@ -118,9 +119,9 @@ bool handle_grey_scale_image_low_level_callback(void) {
 	return false;
 }
 
-bool handle_temperature_image_low_level_callback(void) {
+bool handle_raw_image_low_level_callback(void) {
 	static bool is_buffered = false;
-	static TemperatureImageLowLevelCallback cb;
+	static RawImageLowLevelCallback cb;
 	static uint32_t packet_payload_index = 0;
 	static LeptonPacket *lepton_packet = lepton.frame.data.packets;
 
@@ -138,7 +139,7 @@ bool handle_temperature_image_low_level_callback(void) {
 			return false;
 		}
 
-		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(TemperatureImageLowLevelCallback), FID_CALLBACK_TEMPERATURE_IMAGE_LOW_LEVEL);
+		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(RawImageLowLevelCallback), FID_CALLBACK_IMAGE_LOW_LEVEL);
 		cb.stream_chunk_offset = lepton.image_buffer_stream_index;
 
 		if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
@@ -171,7 +172,7 @@ bool handle_temperature_image_low_level_callback(void) {
 	}
 
 	if(bootloader_spitfp_is_send_possible(&bootloader_status.st)) {
-		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(TemperatureImageLowLevelCallback));
+		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(ImageLowLevelCallback));
 		is_buffered = false;
 		return true;
 	} else {
@@ -188,10 +189,15 @@ void communication_tick(void) {
 	counter++;
 	if(counter == 2) {
 		counter = 0;
-		switch(lepton.current_callback_config) {
-			case THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_GREY_SCALE_IMAGE: handle_grey_scale_image_low_level_callback(); break;
-			case THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_TEMPERATURE_IMAGE: handle_temperature_image_low_level_callback(); break;
-			case THERMAL_IMAGING_CALLBACK_CONFIG_MANUAL:
+
+		if(lepton.stream_callback_config != lepton.current_callback_config && lepton.stream_callback_config == THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_OFF) {
+			lepton.stream_callback_config = lepton.current_callback_config;
+		}
+
+		switch(lepton.stream_callback_config) {
+			case THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_IMAGE: handle_image_low_level_callback(); break;
+			case THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_RAW_IMAGE: handle_raw_image_low_level_callback(); break;
+			case THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_OFF:
 			default: break;
 		}
 	}

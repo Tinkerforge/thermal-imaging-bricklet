@@ -33,16 +33,17 @@ void communication_tick(void);
 void communication_init(void);
 
 // Constants
-#define THERMAL_IMAGING_CALLBACK_CONFIG_MANUAL 0
-#define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_GREY_SCALE_IMAGE 1
-#define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_TEMPERATURE_IMAGE 2
+#define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_OFF 0
+#define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_IMAGE 1
+#define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_RAW_IMAGE 2
 
 // Function and callback IDs and structs
 #define FID_SET_CALLBACK_CONFIG 1
 #define FID_GET_CALLBACK_CONFIG 2
 
-#define FID_CALLBACK_GREY_SCALE_IMAGE_LOW_LEVEL 3
-#define FID_CALLBACK_TEMPERATURE_IMAGE_LOW_LEVEL 4
+#define FID_CALLBACK_IMAGE_LOW_LEVEL 5
+#define FID_CALLBACK_RAW_IMAGE_LOW_LEVEL 6
+
 
 typedef struct {
 	TFPMessageHeader header;
@@ -62,13 +63,13 @@ typedef struct {
 	TFPMessageHeader header;
 	uint16_t stream_chunk_offset;
 	uint8_t stream_chunk_data[62];
-} __attribute__((__packed__)) GreyScaleImageLowLevelCallback;
+} __attribute__((__packed__)) ImageLowLevelCallback;
 
 typedef struct {
 	TFPMessageHeader header;
 	uint16_t stream_chunk_offset;
 	uint16_t stream_chunk_data[31];
-} __attribute__((__packed__)) TemperatureImageLowLevelCallback;
+} __attribute__((__packed__)) RawImageLowLevelCallback;
 
 
 // Function prototypes
@@ -76,14 +77,14 @@ BootloaderHandleMessageResponse set_callback_config(const SetCallbackConfig *dat
 BootloaderHandleMessageResponse get_callback_config(const GetCallbackConfig *data, GetCallbackConfigResponse *response);
 
 // Callbacks
-bool handle_grey_scale_image_low_level_callback(void);
-bool handle_temperature_image_low_level_callback(void);
+bool handle_image_low_level_callback(void);
+bool handle_raw_image_low_level_callback(void);
 
 #define COMMUNICATION_CALLBACK_TICK_WAIT_MS 1
 #define COMMUNICATION_CALLBACK_HANDLER_NUM 2
 #define COMMUNICATION_CALLBACK_LIST_INIT \
-	handle_grey_scale_image_low_level_callback, \
-	handle_temperature_image_low_level_callback, \
+	handle_image_low_level_callback, \
+	handle_raw_image_low_level_callback, \
 
 
 #endif
