@@ -30,6 +30,8 @@
 #include "bricklib2/hal/uartbb/uartbb.h"
 #include "bricklib2/utility/crc16.h"
 
+#include "communication.h"
+
 #include "xmc_i2c.h"
 #include "xmc_spi.h"
 #include "xmc_gpio.h"
