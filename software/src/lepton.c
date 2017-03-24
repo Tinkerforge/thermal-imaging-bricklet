@@ -727,12 +727,12 @@ void lepton_handle_init(Lepton *lepton) {
 
 	uint32_t oem_status = 1;
 	while(oem_status != 0) {
-		lepton_attribute_read(lepton, (0x4000 + 0x0800 + 0x48), 2, (uint16_t*)&oem_status);
+		lepton_attribute_read(lepton, LEPTON_CID_OEM_STATUS, 2, (uint16_t*)&oem_status);
 	}
 	uint32_t gpio_mode = 5; // vsync
-	lepton_attribute_write(lepton, (0x4000 + 0x0800 + 0x54), 2, (uint16_t*)&gpio_mode);
+	lepton_attribute_write(lepton, LEPTON_CID_OEM_GPIO_MODE_SELECT, 2, (uint16_t*)&gpio_mode);
 	while(oem_status != 0) {
-		lepton_attribute_read(lepton, (0x4000 + 0x0800 + 0x48), 2, (uint16_t*)&oem_status);
+		lepton_attribute_read(lepton, LEPTON_CID_OEM_STATUS, 2, (uint16_t*)&oem_status);
 	}
 	lepton->state = LEPTON_STATE_SYNC;
 }
