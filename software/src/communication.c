@@ -29,6 +29,8 @@ extern Lepton lepton;
 
 BootloaderHandleMessageResponse handle_message(const void *message, void *response) {
 	switch(tfp_get_fid_from_message(message)) {
+		case FID_SET_AUTOMATIC_GAIN_CONTROL_CONFIG: return set_automatic_gain_control_config(message);
+		case FID_GET_AUTOMATIC_GAIN_CONTROL_CONFIG: return get_automatic_gain_control_config(message, response);
 		case FID_SET_CALLBACK_CONFIG: return set_callback_config(message);
 		case FID_GET_CALLBACK_CONFIG: return get_callback_config(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
@@ -36,6 +38,55 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 }
 
 
+BootloaderHandleMessageResponse set_automatic_gain_control_config(const SetAutomaticGainControlConfig *data) {
+	if((data->region_of_interest[0] > data->region_of_interest[2]) || // ">" is correct here
+	   (data->region_of_interest[1] >= data->region_of_interest[3]) ||
+	   (data->region_of_interest[2] >= LEPTON_FRAME_COLS) ||
+	   (data->region_of_interest[3] >= LEPTON_FRAME_ROWS) ||
+	   (data->dampening_factor > 256) ||
+	   (data->clip_limit[0] > 4800) ||
+	   (data->clip_limit[1] > 1024) ||
+	   (data->empty_counts > 16383)) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	if((lepton.agc.region_of_interest[0] != data->region_of_interest[0]) ||
+	   (lepton.agc.region_of_interest[1] != data->region_of_interest[1]) ||
+	   (lepton.agc.region_of_interest[2] != data->region_of_interest[2]) ||
+	   (lepton.agc.region_of_interest[3] != data->region_of_interest[3])) {
+		lepton.agc.region_of_interest[0] = data->region_of_interest[0];
+		lepton.agc.region_of_interest[1] = data->region_of_interest[1];
+		lepton.agc.region_of_interest[2] = data->region_of_interest[2];
+		lepton.agc.region_of_interest[3] = data->region_of_interest[3];
+		lepton.config_agc_bitmask |= LEPTON_CONFIG_AGC_BITMASK_ROI;
+	}
+
+	if(lepton.agc.dampening_factor != data->dampening_factor) {
+		lepton.agc.dampening_factor = data->dampening_factor;
+		lepton.config_agc_bitmask |= LEPTON_CONFIG_AGC_BITMASK_DAMPENING_FACTOR;
+	}
+
+	if((lepton.agc.clip_limit[0] != data->clip_limit[0]) ||
+	   (lepton.agc.clip_limit[1] != data->clip_limit[1])) {
+		lepton.agc.clip_limit[0] = data->clip_limit[0];
+		lepton.agc.clip_limit[1] = data->clip_limit[1];
+		lepton.config_agc_bitmask |= LEPTON_CONFIG_AGC_BITMASK_CLIP_LIMIT;
+	}
+
+	if(lepton.agc.empty_counts != data->empty_counts) {
+		lepton.agc.empty_counts = data->empty_counts;
+		lepton.config_agc_bitmask |= LEPTON_CONFIG_AGC_BITMASK_EMPTY_COUNTS;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_automatic_gain_control_config(const GetAutomaticGainControlConfig *data, GetAutomaticGainControlConfigResponse *response) {
+	response->header.length = sizeof(GetAutomaticGainControlConfigResponse);
+	memcpy(response->region_of_interest, &lepton.agc, sizeof(LeptonAutomaticGainControl));
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
 
 BootloaderHandleMessageResponse set_callback_config(const SetCallbackConfig *data) {
 	if(data->callback_config > THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_RAW_IMAGE) {

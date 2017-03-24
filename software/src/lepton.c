@@ -617,7 +617,7 @@ void lepton_init_gpio(Lepton *lepton) {
 	};
 
 	// Initializes input pin characteristics
-	XMC_GPIO_Init(LEPTON_SYNC_PIN, &sync_pin_config); // Currently P2_2
+	XMC_GPIO_Init(LEPTON_SYNC_PIN, &sync_pin_config);
 	// ERU Event Trigger Logic Hardware initialization based on UI
 	XMC_ERU_ETL_Init(XMC_ERU0, LEPTON_SYNC_ETL_CHANNEL, &sync_etl_config);
 	// OGU is configured to generate event on configured trigger edge
@@ -633,9 +633,19 @@ void lepton_init_gpio(Lepton *lepton) {
 
 void lepton_init(Lepton *lepton) {
 	memset(lepton, 0, sizeof(Lepton));
+	lepton->active_interface = LEPTON_INTERFACE_NONE;
+
+	lepton->agc.region_of_interest[0] = 0;
+	lepton->agc.region_of_interest[1] = 0;
+	lepton->agc.region_of_interest[2] = 79;
+	lepton->agc.region_of_interest[3] = 59;
+	lepton->agc.dampening_factor      = 64;
+	lepton->agc.clip_limit[0]         = 4800;
+	lepton->agc.clip_limit[1]         = 512;
+	lepton->agc.empty_counts          = 2;
+
 	lepton_init_gpio(lepton);
 	lepton_init_i2c(lepton);
-//	lepton_init_spi(lepton);
 	lepton_reset(lepton);
 	XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 }
@@ -715,6 +725,39 @@ void lepton_handle_configuration(Lepton *lepton) {
 	if(lepton->config_handle_now) {
 		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
 		lepton->config_handle_now = false;
+		if(lepton->config_agc_bitmask) {
+			lepton_init_i2c(lepton);
+
+			if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_ENABLE) {
+				uint32_t enabled = 0;
+				if(lepton->current_callback_config == THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_IMAGE) {
+					enabled = 1;
+				}
+
+				lepton_attribute_write(lepton, LEPTON_CID_AGC_ENABLE_STATE, 2, (uint16_t*)&enabled);
+				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_ENABLE;
+
+			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_ROI) {
+				uint16_t roi[4] = {lepton->agc.region_of_interest[0], lepton->agc.region_of_interest[1], lepton->agc.region_of_interest[2], lepton->agc.region_of_interest[3]};
+				lepton_attribute_write(lepton, LEPTON_CID_AGC_ROI, 4, roi);
+				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_ROI;
+
+			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_DAMPENING_FACTOR) {
+				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_DAMPENING_FACTOR, 1, &lepton->agc.dampening_factor);
+				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_DAMPENING_FACTOR;
+
+			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_CLIP_LIMIT) {
+				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_CLIP_LIMIT_HIGH, 1, &lepton->agc.clip_limit[0]);
+				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_CLIP_LIMIT_LOW,  1, &lepton->agc.clip_limit[1]);
+				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_CLIP_LIMIT;
+
+			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_EMPTY_COUNTS) {
+				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_EMPTY_COUNTS, 1, &lepton->agc.empty_counts);
+				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_EMPTY_COUNTS;
+			}
+
+			lepton_init_spi(lepton);
+		}
 		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 	}
 }

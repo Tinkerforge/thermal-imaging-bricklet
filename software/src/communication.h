@@ -38,12 +38,33 @@ void communication_init(void);
 #define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_RAW_IMAGE 2
 
 // Function and callback IDs and structs
-#define FID_SET_CALLBACK_CONFIG 1
-#define FID_GET_CALLBACK_CONFIG 2
+#define FID_SET_AUTOMATIC_GAIN_CONTROL_CONFIG 1
+#define FID_GET_AUTOMATIC_GAIN_CONTROL_CONFIG 2
+#define FID_SET_CALLBACK_CONFIG 3
+#define FID_GET_CALLBACK_CONFIG 4
 
 #define FID_CALLBACK_IMAGE_LOW_LEVEL 5
 #define FID_CALLBACK_RAW_IMAGE_LOW_LEVEL 6
 
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t region_of_interest[4];
+	uint16_t dampening_factor;
+	uint16_t clip_limit[2];
+	uint16_t empty_counts;
+} __attribute__((__packed__)) SetAutomaticGainControlConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetAutomaticGainControlConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t region_of_interest[4];
+	uint16_t dampening_factor;
+	uint16_t clip_limit[2];
+	uint16_t empty_counts;
+} __attribute__((__packed__)) GetAutomaticGainControlConfigResponse;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -73,6 +94,8 @@ typedef struct {
 
 
 // Function prototypes
+BootloaderHandleMessageResponse set_automatic_gain_control_config(const SetAutomaticGainControlConfig *data);
+BootloaderHandleMessageResponse get_automatic_gain_control_config(const GetAutomaticGainControlConfig *data, GetAutomaticGainControlConfigResponse *response);
 BootloaderHandleMessageResponse set_callback_config(const SetCallbackConfig *data);
 BootloaderHandleMessageResponse get_callback_config(const GetCallbackConfig *data, GetCallbackConfigResponse *response);
 
