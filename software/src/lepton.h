@@ -398,6 +398,8 @@ typedef union {
 
 typedef union {
 	struct {
+		uint16_t id1;
+		uint16_t crc1;
 		uint16_t revision;
 		uint32_t uptime; // in ms
 		uint32_t status;
@@ -422,6 +424,8 @@ typedef union {
 		uint32_t video_output_format;
 		uint16_t log2_of_ffc_frames;
 		uint16_t reserved5[5];
+		uint16_t id2;
+		uint16_t crc2;
 		uint16_t reserved6[19];
 		uint16_t emissivity;
 		uint16_t background_temperature_kelvin;
@@ -432,6 +436,8 @@ typedef union {
 		uint16_t window_temperature_kelvin;
 		uint16_t window_reflected_temperature_kelvin;
 		uint16_t reserved7[53];
+		uint16_t id3;
+		uint16_t crc3;
 		uint16_t reserved8[5];
 		uint16_t gain_mode;
 		uint16_t effective_gain;
