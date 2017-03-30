@@ -805,35 +805,73 @@ void lepton_handle_configuration(Lepton *lepton) {
 	if(lepton->config_handle_now) {
 		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
 		lepton->config_handle_now = false;
-		if(lepton->config_agc_bitmask) {
+		if(lepton->config_bitmask) {
 			lepton_init_i2c(lepton);
 
-			if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_ENABLE) {
-				uint32_t enabled = 0;
-				if(lepton->current_callback_config == THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_IMAGE) {
-					enabled = 1;
+			if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_ENABLE) {
+				uint32_t enabled = 1; // Enable tlinear in temperature mode
+				if((lepton->current_callback_config == THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE) ||
+				   (lepton->current_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE)) {
+					enabled = 0; // Disable tlinear in high contrast mode
+				}
+
+				uint32_t rad_status = 1;
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				lepton_attribute_write(lepton, LEPTON_CID_RAD_TLINEAR_ENABLE_STATE, 2, (uint16_t*)&enabled);
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+
+				if(enabled) {
+					enabled = 0; // Disable agc in temperature mode
+				} else {
+					enabled = 1; // Enable agc in high contrast mode
 				}
 
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_ENABLE_STATE, 2, (uint16_t*)&enabled);
-				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_ENABLE;
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_AGC_ENABLE;
 
-			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_ROI) {
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_ROI) {
 				uint16_t roi[4] = {lepton->agc.region_of_interest[0], lepton->agc.region_of_interest[1], lepton->agc.region_of_interest[2], lepton->agc.region_of_interest[3]};
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_ROI, 4, roi);
-				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_ROI;
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_AGC_ROI;
 
-			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_DAMPENING_FACTOR) {
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_DAMPENING_FACTOR) {
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_DAMPENING_FACTOR, 1, &lepton->agc.dampening_factor);
-				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_DAMPENING_FACTOR;
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_AGC_DAMPENING_FACTOR;
 
-			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_CLIP_LIMIT) {
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_CLIP_LIMIT) {
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_CLIP_LIMIT_HIGH, 1, &lepton->agc.clip_limit[0]);
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_CLIP_LIMIT_LOW,  1, &lepton->agc.clip_limit[1]);
-				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_CLIP_LIMIT;
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_AGC_CLIP_LIMIT;
 
-			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_EMPTY_COUNTS) {
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_EMPTY_COUNTS) {
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_EMPTY_COUNTS, 1, &lepton->agc.empty_counts);
-				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_EMPTY_COUNTS;
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_AGC_EMPTY_COUNTS;
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_SPOTMETER_ROI) {
+				uint32_t rad_status = 1;
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				uint16_t roi[4] = {lepton->spotmeter_roi[1], lepton->spotmeter_roi[0], lepton->spotmeter_roi[3], lepton->spotmeter_roi[2]};
+				lepton_attribute_write(lepton, LEPTON_CID_RAD_SPOTMETER_ROI, 4, roi);
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_SPOTMETER_ROI;
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_RESOLUTION) {
+				uint32_t rad_status = 1;
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				uint32_t resolution = lepton->resolution;
+				lepton_attribute_write(lepton, LEPTON_CID_RAD_TLINEAR_RESOLUTION, 2, (uint16_t*)&resolution);
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_RESOLUTION;
 			}
 
 			lepton_init_spi(lepton);
