@@ -239,7 +239,7 @@ void __attribute__((optimize("-O3"))) lepton_rx_read_irq_handler(void) {
 				LEPTON_SET_SPI_LIMIT(1);
 			}
 		} else {
-			if((lepton.frame.data.packets[0].vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) == LEPTON_SPI_DISCARD_PACKET_ID_MASK) {
+			if((lepton.frame.data.packets[0].vospi.id & LEPTON_SPI_PACKET_ID_MASK) != 0) {
 				lepton_frame_pointer = lepton_frame_start;
 			} else {
 				lepton_irq_state = LEPTON_IRQ_STATE_DATA;
@@ -280,7 +280,7 @@ void __attribute__((optimize("-O3"))) lepton_rx_remove_irq_handler(void) {
 				LEPTON_SET_SPI_LIMIT(1);
 			}
 		} else {
-			if((lepton.frame.data.packets[0].vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) == LEPTON_SPI_DISCARD_PACKET_ID_MASK) {
+			if((lepton.frame.data.packets[0].vospi.id & LEPTON_SPI_PACKET_ID_MASK) != 0) {
 				lepton_frame_pointer_dummy = lepton_frame_start;
 			} else {
 				lepton_irq_state = LEPTON_IRQ_STATE_DATA;
