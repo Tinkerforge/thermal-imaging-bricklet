@@ -705,6 +705,22 @@ void lepton_init(Lepton *lepton) {
 	XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 }
 
+bool lepton_check_crc_of_first_packet(Lepton *lepton) {
+	// First sanity check the id.
+	if(((lepton->frame.data.packets[0].vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) != LEPTON_SPI_DISCARD_PACKET_ID_MASK) &&
+	   ((lepton->frame.data.packets[0].vospi.id & 0x00FF) > LEPTON_FRAME_ROWS)) {
+		return false;
+	}
+
+	// Remove first 4 bits of id, set crc to 0 in packet to calculate CRC
+	// See p52ff in datasheet.
+	lepton->frame.data.packets[0].vospi.id &= LEPTON_SPI_PACKET_ID_MASK;
+	const uint16_t crc_lepton = lepton->frame.data.packets[0].vospi.crc;
+	lepton->frame.data.packets[0].vospi.crc = 0;
+
+	return crc_lepton == crc16_ccitt_16in(lepton->frame.data.packets[0].buffer, LEPTON_PACKET_SIZE);
+}
+
 void lepton_handle_reset(Lepton *lepton) {
 	// To reset the Lepton we assert the reset line for LEPTON_RESET_TIME ms
 	if(lepton->reset_start_time != 0) {
