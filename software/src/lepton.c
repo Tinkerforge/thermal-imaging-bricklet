@@ -749,6 +749,7 @@ void lepton_handle_reset(Lepton *lepton) {
 
 void lepton_handle_init(Lepton *lepton) {
 	uint32_t enable = 1;
+	lepton_attribute_write(lepton, LEPTON_CID_AGC_CALC_ENABLE_STATE, 2, (uint16_t*)&enable);
 	lepton_attribute_write(lepton, LEPTON_CID_AGC_ENABLE_STATE, 2, (uint16_t*)&enable);
 
 	uint32_t telemetry_location = 1; // footer
@@ -765,6 +766,16 @@ void lepton_handle_init(Lepton *lepton) {
 	lepton_attribute_write(lepton, LEPTON_CID_OEM_GPIO_MODE_SELECT, 2, (uint16_t*)&gpio_mode);
 	while(oem_status != 0) {
 		lepton_attribute_read(lepton, LEPTON_CID_OEM_STATUS, 2, (uint16_t*)&oem_status);
+	}
+
+	uint32_t rad_status = 1;
+	while(rad_status != 0) {
+		lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+	}
+	uint32_t tlinear_enable = 0;
+	lepton_attribute_write(lepton, LEPTON_CID_RAD_TLINEAR_ENABLE_STATE, 2, (uint16_t*)&tlinear_enable);
+	while(rad_status != 0) {
+		lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
 	}
 	lepton->state = LEPTON_STATE_SYNC;
 }
