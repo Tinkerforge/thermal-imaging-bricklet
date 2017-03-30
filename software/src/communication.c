@@ -29,16 +29,103 @@ extern Lepton lepton;
 
 BootloaderHandleMessageResponse handle_message(const void *message, void *response) {
 	switch(tfp_get_fid_from_message(message)) {
-		case FID_SET_AUTOMATIC_GAIN_CONTROL_CONFIG: return set_automatic_gain_control_config(message);
-		case FID_GET_AUTOMATIC_GAIN_CONTROL_CONFIG: return get_automatic_gain_control_config(message, response);
-		case FID_SET_CALLBACK_CONFIG: return set_callback_config(message);
-		case FID_GET_CALLBACK_CONFIG: return get_callback_config(message, response);
+		case FID_GET_HIGH_CONTRAST_IMAGE_LOW_LEVEL: return get_high_contrast_image_low_level(message, response);
+		case FID_GET_TEMPERATURE_IMAGE_LOW_LEVEL: return get_temperature_image_low_level(message, response);
+		case FID_GET_STATISTICS: return get_statistics(message, response);
+		case FID_SET_RESOLUTION: return set_resolution(message);
+		case FID_GET_RESOLUTION: return get_resolution(message, response);
+		case FID_SET_SPOTMETER_CONFIG: return set_spotmeter_config(message);
+		case FID_GET_SPOTMETER_CONFIG: return get_spotmeter_config(message, response);
+		case FID_SET_HIGH_CONTRAST_CONFIG: return set_high_contrast_config(message);
+		case FID_GET_HIGH_CONTRAST_CONFIG: return get_high_contrast_config(message, response);
+		case FID_SET_IMAGE_TRANSFER_CONFIG: return set_image_transfer_config(message);
+		case FID_GET_IMAGE_TRANSFER_CONFIG: return get_image_transfer_config(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
+BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighContrastImageLowLevel *data, GetHighContrastImageLowLevelResponse *response) {
+	response->header.length = sizeof(GetHighContrastImageLowLevelResponse);
 
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTemperatureImageLowLevel *data, GetTemperatureImageLowLevelResponse *response) {
+	response->header.length = sizeof(GetTemperatureImageLowLevelResponse);
 
-BootloaderHandleMessageResponse set_automatic_gain_control_config(const SetAutomaticGainControlConfig *data) {
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse get_statistics(const GetStatistics *data, GetStatisticsResponse *response) {
+	response->header.length             = sizeof(GetStatisticsResponse);
+	response->spotmeter_statistics[0]   = lepton.frame.data.telemetry.data.spotmeter_mean;
+	response->spotmeter_statistics[1]   = lepton.frame.data.telemetry.data.spotmeter_maximum;
+	response->spotmeter_statistics[2]   = lepton.frame.data.telemetry.data.spotmeter_minimum;
+	response->spotmeter_statistics[3]   = lepton.frame.data.telemetry.data.spotmeter_population;
+
+	response->temperatures[0]           = lepton.frame.data.telemetry.data.atmospheric_temperature_kelvin;
+	response->temperatures[1]           = lepton.frame.data.telemetry.data.background_temperature_kelvin;
+	response->temperatures[2]           = lepton.frame.data.telemetry.data.fpa_temperature_at_last_ffc_kelvin;
+	response->temperatures[3]           = lepton.frame.data.telemetry.data.fpa_temperature_kelvin;
+
+	response->resolution                = lepton.frame.data.telemetry.data.tlinear_resolution;
+
+	// TODO: Change bits around for status?
+	response->status                    = lepton.frame.data.telemetry.data.status;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_resolution(const SetResolution *data) {
+	if(data->resolution > THERMAL_IMAGING_RESOLUTION_0_TO_655_KELVIN) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+	if(data->resolution != lepton.resolution) {
+		lepton.resolution      = data->resolution;
+		lepton.config_bitmask |= LEPTON_CONFIG_BITMASK_RESOLUTION;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_resolution(const GetResolution *data, GetResolutionResponse *response) {
+	response->header.length = sizeof(GetResolutionResponse);
+	response->resolution    = lepton.resolution;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_spotmeter_config(const SetSpotmeterConfig *data) {
+	if((data->region_of_interest[0] >= data->region_of_interest[2]) ||
+	   (data->region_of_interest[1] >= data->region_of_interest[3]) ||
+	   (data->region_of_interest[2] >= LEPTON_FRAME_COLS) ||
+	   (data->region_of_interest[3] >= LEPTON_FRAME_ROWS)) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	if((lepton.spotmeter_roi[0] != data->region_of_interest[0]) ||
+	   (lepton.spotmeter_roi[1] != (LEPTON_FRAME_ROWS-1 - data->region_of_interest[3])) ||
+	   (lepton.spotmeter_roi[2] != data->region_of_interest[2]) ||
+	   (lepton.spotmeter_roi[3] != (LEPTON_FRAME_ROWS-1 - data->region_of_interest[1]))) {
+		lepton.spotmeter_roi[0] = data->region_of_interest[0];
+		lepton.spotmeter_roi[1] = LEPTON_FRAME_ROWS-1 - data->region_of_interest[3];
+		lepton.spotmeter_roi[2] = data->region_of_interest[2];
+		lepton.spotmeter_roi[3] = LEPTON_FRAME_ROWS-1 - data->region_of_interest[1];
+		lepton.config_bitmask  |= LEPTON_CONFIG_BITMASK_SPOTMETER_ROI;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_spotmeter_config(const GetSpotmeterConfig *data, GetSpotmeterConfigResponse *response) {
+	response->header.length = sizeof(GetSpotmeterConfigResponse);
+	response->region_of_interest[0] = lepton.spotmeter_roi[0];
+	response->region_of_interest[1] = LEPTON_FRAME_ROWS-1 - lepton.spotmeter_roi[3];
+	response->region_of_interest[2] = lepton.spotmeter_roi[2];
+	response->region_of_interest[3] = LEPTON_FRAME_ROWS-1 - lepton.spotmeter_roi[1];
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_high_contrast_config(const SetHighContrastConfig *data) {
 	if((data->region_of_interest[0] > data->region_of_interest[2]) || // ">" is correct here
 	   (data->region_of_interest[1] >= data->region_of_interest[3]) ||
 	   (data->region_of_interest[2] >= LEPTON_FRAME_COLS) ||
@@ -51,69 +138,70 @@ BootloaderHandleMessageResponse set_automatic_gain_control_config(const SetAutom
 	}
 
 	if((lepton.agc.region_of_interest[0] != data->region_of_interest[0]) ||
-	   (lepton.agc.region_of_interest[1] != data->region_of_interest[1]) ||
+	   (lepton.agc.region_of_interest[1] != (LEPTON_FRAME_ROWS-1 - data->region_of_interest[3])) ||
 	   (lepton.agc.region_of_interest[2] != data->region_of_interest[2]) ||
-	   (lepton.agc.region_of_interest[3] != data->region_of_interest[3])) {
+	   (lepton.agc.region_of_interest[3] != (LEPTON_FRAME_ROWS-1 - data->region_of_interest[1]))) {
 		lepton.agc.region_of_interest[0] = data->region_of_interest[0];
-		lepton.agc.region_of_interest[1] = data->region_of_interest[1];
+		lepton.agc.region_of_interest[1] = LEPTON_FRAME_ROWS-1 - data->region_of_interest[3];
 		lepton.agc.region_of_interest[2] = data->region_of_interest[2];
-		lepton.agc.region_of_interest[3] = data->region_of_interest[3];
-		lepton.config_agc_bitmask |= LEPTON_CONFIG_AGC_BITMASK_ROI;
+		lepton.agc.region_of_interest[3] = LEPTON_FRAME_ROWS-1 - data->region_of_interest[1];
+		lepton.config_bitmask |= LEPTON_CONFIG_BITMASK_AGC_ROI;
 	}
 
 	if(lepton.agc.dampening_factor != data->dampening_factor) {
 		lepton.agc.dampening_factor = data->dampening_factor;
-		lepton.config_agc_bitmask |= LEPTON_CONFIG_AGC_BITMASK_DAMPENING_FACTOR;
+		lepton.config_bitmask |= LEPTON_CONFIG_BITMASK_AGC_DAMPENING_FACTOR;
 	}
 
 	if((lepton.agc.clip_limit[0] != data->clip_limit[0]) ||
 	   (lepton.agc.clip_limit[1] != data->clip_limit[1])) {
 		lepton.agc.clip_limit[0] = data->clip_limit[0];
 		lepton.agc.clip_limit[1] = data->clip_limit[1];
-		lepton.config_agc_bitmask |= LEPTON_CONFIG_AGC_BITMASK_CLIP_LIMIT;
+		lepton.config_bitmask |= LEPTON_CONFIG_BITMASK_AGC_CLIP_LIMIT;
 	}
 
 	if(lepton.agc.empty_counts != data->empty_counts) {
 		lepton.agc.empty_counts = data->empty_counts;
-		lepton.config_agc_bitmask |= LEPTON_CONFIG_AGC_BITMASK_EMPTY_COUNTS;
+		lepton.config_bitmask |= LEPTON_CONFIG_BITMASK_AGC_EMPTY_COUNTS;
 	}
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
-BootloaderHandleMessageResponse get_automatic_gain_control_config(const GetAutomaticGainControlConfig *data, GetAutomaticGainControlConfigResponse *response) {
-	response->header.length = sizeof(GetAutomaticGainControlConfigResponse);
+BootloaderHandleMessageResponse get_high_contrast_config(const GetHighContrastConfig *data, GetHighContrastConfigResponse *response) {
+	response->header.length = sizeof(GetHighContrastConfigResponse);
 	memcpy(response->region_of_interest, &lepton.agc, sizeof(LeptonAutomaticGainControl));
+	response->region_of_interest[1] = LEPTON_FRAME_ROWS-1 - lepton.agc.region_of_interest[3];
+	response->region_of_interest[3] = LEPTON_FRAME_ROWS-1 - lepton.agc.region_of_interest[1];
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
-BootloaderHandleMessageResponse set_callback_config(const SetCallbackConfig *data) {
-	if(data->callback_config > THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_RAW_IMAGE) {
+BootloaderHandleMessageResponse set_image_transfer_config(const SetImageTransferConfig *data) {
+	if(data->config > THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_TEMPERATURE_IMAGE) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
-	if(lepton.current_callback_config != data->callback_config) {
-		lepton.config_agc_bitmask |= LEPTON_CONFIG_AGC_BITMASK_ENABLE;
-		lepton.current_callback_config = data->callback_config;
+	if(lepton.current_callback_config != data->config) {
+		lepton.config_bitmask |= LEPTON_CONFIG_BITMASK_AGC_ENABLE;
+		lepton.current_callback_config = data->config;
 	}
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
-BootloaderHandleMessageResponse get_callback_config(const GetCallbackConfig *data, GetCallbackConfigResponse *response) {
-	response->header.length   = sizeof(GetCallbackConfigResponse);
-	response->callback_config = lepton.current_callback_config;
+BootloaderHandleMessageResponse get_image_transfer_config(const GetImageTransferConfig *data, GetImageTransferConfigResponse *response) {
+	response->header.length = sizeof(GetImageTransferConfigResponse);
+	response->config        = lepton.current_callback_config;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
 
 
-
-bool handle_image_low_level_callback(void) {
+bool handle_high_contrast_image_low_level_callback(void) {
 	static bool is_buffered = false;
-	static ImageLowLevelCallback cb;
+	static HighContrastImageLowLevelCallback cb;
 	static uint32_t packet_payload_index = 0;
 	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
 
@@ -131,7 +219,7 @@ bool handle_image_low_level_callback(void) {
 			return false;
 		}
 
-		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(ImageLowLevelCallback), FID_CALLBACK_IMAGE_LOW_LEVEL);
+		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(HighContrastImageLowLevelCallback), FID_CALLBACK_HIGH_CONTRAST_IMAGE_LOW_LEVEL);
 		cb.stream_chunk_offset = lepton.image_buffer_stream_index;
 
 		if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
@@ -165,7 +253,7 @@ bool handle_image_low_level_callback(void) {
 	}
 
 	if(bootloader_spitfp_is_send_possible(&bootloader_status.st)) {
-		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(ImageLowLevelCallback));
+		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(HighContrastImageLowLevelCallback));
 		is_buffered = false;
 		return true;
 	} else {
@@ -174,9 +262,9 @@ bool handle_image_low_level_callback(void) {
 	return false;
 }
 
-bool handle_raw_image_low_level_callback(void) {
+bool handle_temperature_image_low_level_callback(void) {
 	static bool is_buffered = false;
-	static RawImageLowLevelCallback cb;
+	static TemperatureImageLowLevelCallback cb;
 	static uint32_t packet_payload_index = 0;
 	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
 
@@ -194,7 +282,7 @@ bool handle_raw_image_low_level_callback(void) {
 			return false;
 		}
 
-		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(RawImageLowLevelCallback), FID_CALLBACK_IMAGE_LOW_LEVEL);
+		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(TemperatureImageLowLevelCallback), FID_CALLBACK_TEMPERATURE_IMAGE_LOW_LEVEL);
 		cb.stream_chunk_offset = lepton.image_buffer_stream_index;
 
 		if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
@@ -228,7 +316,7 @@ bool handle_raw_image_low_level_callback(void) {
 	}
 
 	if(bootloader_spitfp_is_send_possible(&bootloader_status.st)) {
-		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(ImageLowLevelCallback));
+		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(TemperatureImageLowLevelCallback));
 		is_buffered = false;
 		return true;
 	} else {
@@ -246,14 +334,13 @@ void communication_tick(void) {
 	if(counter == 2) {
 		counter = 0;
 
-		if(lepton.stream_callback_config != lepton.current_callback_config && lepton.stream_callback_config == THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_OFF) {
+		if(lepton.stream_callback_config != lepton.current_callback_config && (lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE || lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_TEMPERATURE_IMAGE)) {
 			lepton.stream_callback_config = lepton.current_callback_config;
 		}
 
 		switch(lepton.stream_callback_config) {
-			case THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_IMAGE: handle_image_low_level_callback(); break;
-			case THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_RAW_IMAGE: handle_raw_image_low_level_callback(); break;
-			case THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_OFF:
+			case THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE: handle_high_contrast_image_low_level_callback(); break;
+			case THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_TEMPERATURE_IMAGE: handle_temperature_image_low_level_callback(); break;
 			default: break;
 		}
 	}
