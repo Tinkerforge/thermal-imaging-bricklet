@@ -209,6 +209,11 @@ void __attribute__((optimize("-O3"))) lepton_sync_handler(void) {
 		return;
 	}
 
+	// Make sure SPI FIFO is flushed
+	for(uint8_t i = 0; i < 32; i++) {
+		LEPTON_SPI->OUTR;
+	}
+
 	if(lepton.state == LEPTON_STATE_READ_FRAME) {
 		XMC_USIC_CH_RXFIFO_SetInterruptNodePointer(LEPTON_SPI, XMC_USIC_CH_RXFIFO_INTERRUPT_NODE_POINTER_STANDARD, LEPTON_SERVICE_REQUEST_READ_RX);   // IRQ LEPTON_IRQ_READ_RX
 		NVIC_DisableIRQ((IRQn_Type)LEPTON_IRQ_REMOVE_RX);
