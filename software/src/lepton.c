@@ -692,6 +692,12 @@ void lepton_init(Lepton *lepton) {
 	lepton->agc.clip_limit[0]         = 4800;
 	lepton->agc.clip_limit[1]         = 512;
 	lepton->agc.empty_counts          = 2;
+	lepton->spotmeter_roi[0]          = 39;
+	lepton->spotmeter_roi[1]          = 29;
+	lepton->spotmeter_roi[2]          = 40;
+	lepton->spotmeter_roi[3]          = 30;
+	lepton->resolution                = 1;
+	lepton->current_callback_config   = THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE;
 
 	lepton_init_gpio(lepton);
 	lepton_init_i2c(lepton);
