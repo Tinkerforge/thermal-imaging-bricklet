@@ -782,6 +782,7 @@ void lepton_handle_init(Lepton *lepton) {
 
 void lepton_handle_sync(Lepton *lepton) {
 	if(lepton->sync_start_time == 0) {
+		lepton->sync_done = false;
 		lepton_init_spi(lepton);
 		lepton->packet_next_id = 0;
 		lepton->image_buffer_receive_index = 0;
@@ -794,9 +795,6 @@ void lepton_handle_sync(Lepton *lepton) {
 	}
 
 	if(system_timer_is_time_elapsed_ms(lepton->sync_start_time, 190)) {
-
-		lepton_spi_deselect(lepton);
-
 		lepton->sync_start_time = 0;
 		lepton->state = LEPTON_STATE_READ_FRAME;
 		lepton->sync_done = true;
