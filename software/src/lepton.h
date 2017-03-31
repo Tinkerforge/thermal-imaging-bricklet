@@ -509,6 +509,7 @@ typedef struct {
 	LeptonAutomaticGainControl agc;
 	uint8_t spotmeter_roi[4];
 	uint8_t resolution;
+	bool manual_transfer_ongoing;
 } Lepton;
 
 void lepton_init(Lepton *lepton);
