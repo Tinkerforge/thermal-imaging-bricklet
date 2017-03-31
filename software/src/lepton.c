@@ -232,7 +232,7 @@ void __attribute__((optimize("-O3"))) lepton_sync_handler(void) {
 	LEPTON_SPI_WRITE_16();
 }
 
-void __attribute__((optimize("-O3"))) lepton_rx_read_irq_handler(void) {
+void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) lepton_rx_read_irq_handler(void) {
 	if(lepton_irq_state == LEPTON_IRQ_STATE_SYNC) {
 		LEPTON_SPI_READ_2();
 		if(lepton_frame_pointer != lepton_frame_end_of_first_packet) {
@@ -273,7 +273,7 @@ void __attribute__((optimize("-O3"))) lepton_rx_read_irq_handler(void) {
 	}
 }
 
-void __attribute__((optimize("-O3"))) lepton_rx_remove_irq_handler(void) {
+void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) lepton_rx_remove_irq_handler(void) {
 	if(lepton_irq_state == LEPTON_IRQ_STATE_SYNC) {
 		LEPTON_SPI_REMOVE_2();
 		if(lepton_frame_pointer_dummy != lepton_frame_end_of_first_packet) {
