@@ -43,13 +43,114 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
+
 BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighContrastImageLowLevel *data, GetHighContrastImageLowLevelResponse *response) {
+	static uint32_t packet_payload_index = 0;
+	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+
 	response->header.length = sizeof(GetHighContrastImageLowLevelResponse);
+
+	if(lepton.stream_callback_config != THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	lepton.manual_transfer_ongoing =  true;
+
+	uint8_t length = 62;
+	if(lepton.image_buffer_stream_index + 62 > LEPTON_IMAGE_BUFFER_SIZE) {
+		length = LEPTON_IMAGE_BUFFER_SIZE - lepton.image_buffer_stream_index;
+	}
+
+	if(length == 0) {
+		return HANDLE_MESSAGE_RESPONSE_EMPTY;
+	}
+
+	response->stream_chunk_offset = lepton.image_buffer_stream_index;
+
+	if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
+		uint32_t length_first_packet = LEPTON_PACKET_PAYLOAD_SIZE - packet_payload_index;
+		for(uint8_t i = 0; i < length_first_packet; i++) {
+			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			packet_payload_index++;
+		}
+
+		lepton_packet--;
+		packet_payload_index = 0;
+		for(uint8_t i = length_first_packet; i < length; i++) {
+			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			packet_payload_index++;
+		}
+	} else {
+		for(uint8_t i = 0; i < length; i++) {
+			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			packet_payload_index++;
+		}
+	}
+
+	lepton.image_buffer_stream_index += length;
+	if(lepton.image_buffer_stream_index == LEPTON_IMAGE_BUFFER_SIZE) {
+		lepton.state = LEPTON_STATE_READ_FRAME;
+		lepton.manual_transfer_ongoing =  false;
+		lepton.image_buffer_stream_index = 0;
+		lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+		packet_payload_index = 0;
+		lepton.stream_callback_config = lepton.current_callback_config;
+	}
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTemperatureImageLowLevel *data, GetTemperatureImageLowLevelResponse *response) {
+	static uint32_t packet_payload_index = 0;
+	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+
 	response->header.length = sizeof(GetTemperatureImageLowLevelResponse);
+
+	if(lepton.stream_callback_config != THERMAL_IMAGING_DATA_TRANSFER_MANUAL_TEMPERATURE_IMAGE) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	lepton.manual_transfer_ongoing =  true;
+
+	uint8_t length = 31;
+	if(lepton.image_buffer_stream_index + 31 > LEPTON_IMAGE_BUFFER_SIZE) {
+		length = LEPTON_IMAGE_BUFFER_SIZE - lepton.image_buffer_stream_index;
+	}
+
+	if(length == 0) {
+		return HANDLE_MESSAGE_RESPONSE_EMPTY;
+	}
+
+	response->stream_chunk_offset = lepton.image_buffer_stream_index;
+
+	if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
+		uint32_t length_first_packet = LEPTON_PACKET_PAYLOAD_SIZE - packet_payload_index;
+		for(uint8_t i = 0; i < length_first_packet; i++) {
+			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			packet_payload_index++;
+		}
+
+		lepton_packet--;
+		packet_payload_index = 0;
+		for(uint8_t i = length_first_packet; i < length; i++) {
+			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			packet_payload_index++;
+		}
+	} else {
+		for(uint8_t i = 0; i < length; i++) {
+			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			packet_payload_index++;
+		}
+	}
+
+	lepton.image_buffer_stream_index += length;
+	if(lepton.image_buffer_stream_index == LEPTON_IMAGE_BUFFER_SIZE) {
+		lepton.state = LEPTON_STATE_READ_FRAME;
+		lepton.manual_transfer_ongoing =  false;
+		lepton.image_buffer_stream_index = 0;
+		lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+		packet_payload_index = 0;
+		lepton.stream_callback_config = lepton.current_callback_config;
+	}
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
@@ -334,8 +435,17 @@ void communication_tick(void) {
 	if(counter == 2) {
 		counter = 0;
 
-		if(lepton.stream_callback_config != lepton.current_callback_config && (lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE || lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_TEMPERATURE_IMAGE)) {
+		if((lepton.stream_callback_config != lepton.current_callback_config) &&
+		   (lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE || lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_TEMPERATURE_IMAGE) &&
+		   (!lepton.manual_transfer_ongoing)) {
 			lepton.stream_callback_config = lepton.current_callback_config;
+		}
+
+		if(lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE || lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_TEMPERATURE_IMAGE) {
+			if(lepton.state == LEPTON_STATE_WRITE_FRAME && !lepton.manual_transfer_ongoing) {
+				lepton.state = LEPTON_STATE_READ_FRAME;
+				return;
+			}
 		}
 
 		switch(lepton.stream_callback_config) {
