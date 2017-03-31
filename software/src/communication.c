@@ -162,15 +162,20 @@ BootloaderHandleMessageResponse get_statistics(const GetStatistics *data, GetSta
 	response->spotmeter_statistics[2]   = lepton.frame.data.telemetry.data.spotmeter_minimum;
 	response->spotmeter_statistics[3]   = lepton.frame.data.telemetry.data.spotmeter_population;
 
-	response->temperatures[0]           = lepton.frame.data.telemetry.data.atmospheric_temperature_kelvin;
-	response->temperatures[1]           = lepton.frame.data.telemetry.data.background_temperature_kelvin;
-	response->temperatures[2]           = lepton.frame.data.telemetry.data.fpa_temperature_at_last_ffc_kelvin;
-	response->temperatures[3]           = lepton.frame.data.telemetry.data.fpa_temperature_kelvin;
+	response->temperatures[0]           = lepton.frame.data.telemetry.data.fpa_temperature_kelvin;
+	response->temperatures[1]           = lepton.frame.data.telemetry.data.fpa_temperature_at_last_ffc_kelvin;
+	response->temperatures[2]           = lepton.frame.data.telemetry.data.housing_temperature_kelvin;
+	response->temperatures[3]           = lepton.frame.data.telemetry.data.housing_temperature_at_last_ffc;
 
 	response->resolution                = lepton.frame.data.telemetry.data.tlinear_resolution;
 
-	// TODO: Change bits around for status?
-	response->status                    = lepton.frame.data.telemetry.data.status;
+	const uint32_t ls = lepton.frame.data.telemetry.data.status;
+	response->status = 0;
+	response->status |= ((ls >> 3) & 1) << 0;
+	response->status |= ((ls >> 4) & 3) << 1;
+	response->status |= ((ls >> 12) & 1) << 3;
+	response->status |= ((ls >> 15) & 1) << 4;
+	response->status |= ((ls >> 20) & 1) << 5;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
