@@ -266,7 +266,9 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) le
 				LEPTON_SET_SPI_LIMIT(11);
 			}
 		} else {
-			lepton.state = LEPTON_STATE_WRITE_FRAME;
+			if(lepton_check_crc_of_first_packet(&lepton)) {
+				lepton.state = LEPTON_STATE_WRITE_FRAME;
+			}
 			lepton.config_handle_now = true;
 			XMC_GPIO_SetOutputHigh(LEPTON_SELECT_PIN);
 		}
