@@ -704,7 +704,6 @@ void lepton_init(Lepton *lepton) {
 	lepton_init_gpio(lepton);
 	lepton_init_i2c(lepton);
 	lepton_reset(lepton);
-	XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 }
 
 bool lepton_check_crc_of_first_packet(Lepton *lepton) {
@@ -805,7 +804,6 @@ void lepton_handle_sync(Lepton *lepton) {
 
 void lepton_handle_configuration(Lepton *lepton) {
 	if(lepton->config_handle_now) {
-		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
 		lepton->config_handle_now = false;
 		if(lepton->config_bitmask) {
 			lepton_init_i2c(lepton);
@@ -878,7 +876,6 @@ void lepton_handle_configuration(Lepton *lepton) {
 
 			lepton_init_spi(lepton);
 		}
-		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 	}
 }
 
