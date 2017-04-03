@@ -505,7 +505,7 @@ void lepton_init_spi(Lepton *lepton) {
 	// MISO pin configuration
 	const XMC_GPIO_CONFIG_t miso_pin_config = {
 		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
-		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD
+		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_LARGE
 	};
 
 	// SCLK pin configuration
@@ -593,7 +593,7 @@ void lepton_init_i2c(Lepton *lepton) {
 	// MISO pin configuration
 	const XMC_GPIO_CONFIG_t miso_pin_config = {
 		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
-		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD
+		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_LARGE
 	};
 
 	// SCLK pin configuration
@@ -654,7 +654,7 @@ void lepton_init_gpio(Lepton *lepton) {
 
 	const XMC_GPIO_CONFIG_t sync_pin_config = {
 		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
-		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD
+		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_LARGE
 	};
 	XMC_GPIO_Init(P0_0, &sync_pin_config); // TODO: Remove me for release version
 
