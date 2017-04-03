@@ -806,6 +806,7 @@ void lepton_handle_sync(Lepton *lepton) {
 		lepton->sync_start_time = 0;
 		lepton->state = LEPTON_STATE_READ_FRAME;
 		lepton->sync_done = true;
+		lepton_spi_deselect(lepton);
 	}
 }
 
