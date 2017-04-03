@@ -602,8 +602,15 @@ void lepton_init_i2c(Lepton *lepton) {
 		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
 	};
 
+	// SELECT pin configuration
+	const XMC_GPIO_CONFIG_t select_pin_config = {
+		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
+		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
+	};
+
 	XMC_GPIO_Init(LEPTON_SCLK_PIN, &sclk_pin_config);
 	XMC_GPIO_Init(LEPTON_MISO_PIN, &miso_pin_config);
+	XMC_GPIO_Init(LEPTON_SELECT_PIN, &select_pin_config);
 
 	LEPTON_SPI->SCTR |= USIC_CH_SCTR_PDL_Msk; // Set passive data level to 1
 	LEPTON_SPI_CHANNEL->DX1CR &= ~USIC_CH_DX1CR_DPOL_Msk; // Set input control register back to default
