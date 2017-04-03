@@ -205,7 +205,7 @@ typedef enum {
 static LeptonIRQState lepton_irq_state = LEPTON_IRQ_STATE_SYNC;
 
 void __attribute__((optimize("-O3"))) lepton_sync_handler(void) {
-	if(!lepton.sync_done || lepton.active_interface != LEPTON_INTERFACE_SPI) {
+	if(!lepton.sync_done || lepton.active_interface != LEPTON_INTERFACE_SPI || !XMC_GPIO_GetInput(LEPTON_SELECT_PIN)) {
 		return;
 	}
 
