@@ -33,81 +33,159 @@ void communication_tick(void);
 void communication_init(void);
 
 // Constants
-#define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_OFF 0
-#define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_IMAGE 1
-#define THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_RAW_IMAGE 2
+#define THERMAL_IMAGING_RESOLUTION_0_TO_6553_KELVIN 0
+#define THERMAL_IMAGING_RESOLUTION_0_TO_655_KELVIN 1
+
+#define THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE 0
+#define THERMAL_IMAGING_DATA_TRANSFER_MANUAL_TEMPERATURE_IMAGE 1
+#define THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE 2
+#define THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_TEMPERATURE_IMAGE 3
 
 // Function and callback IDs and structs
-#define FID_SET_AUTOMATIC_GAIN_CONTROL_CONFIG 1
-#define FID_GET_AUTOMATIC_GAIN_CONTROL_CONFIG 2
-#define FID_SET_CALLBACK_CONFIG 3
-#define FID_GET_CALLBACK_CONFIG 4
+#define FID_GET_HIGH_CONTRAST_IMAGE_LOW_LEVEL 1
+#define FID_GET_TEMPERATURE_IMAGE_LOW_LEVEL 2
+#define FID_GET_STATISTICS 3
+#define FID_SET_RESOLUTION 4
+#define FID_GET_RESOLUTION 5
+#define FID_SET_SPOTMETER_CONFIG 6
+#define FID_GET_SPOTMETER_CONFIG 7
+#define FID_SET_HIGH_CONTRAST_CONFIG 8
+#define FID_GET_HIGH_CONTRAST_CONFIG 9
+#define FID_SET_IMAGE_TRANSFER_CONFIG 10
+#define FID_GET_IMAGE_TRANSFER_CONFIG 11
 
-#define FID_CALLBACK_IMAGE_LOW_LEVEL 5
-#define FID_CALLBACK_RAW_IMAGE_LOW_LEVEL 6
-
-typedef struct {
-	TFPMessageHeader header;
-	uint8_t region_of_interest[4];
-	uint16_t dampening_factor;
-	uint16_t clip_limit[2];
-	uint16_t empty_counts;
-} __attribute__((__packed__)) SetAutomaticGainControlConfig;
-
-typedef struct {
-	TFPMessageHeader header;
-} __attribute__((__packed__)) GetAutomaticGainControlConfig;
+#define FID_CALLBACK_HIGH_CONTRAST_IMAGE_LOW_LEVEL 12
+#define FID_CALLBACK_TEMPERATURE_IMAGE_LOW_LEVEL 13
 
 typedef struct {
 	TFPMessageHeader header;
-	uint8_t region_of_interest[4];
-	uint16_t dampening_factor;
-	uint16_t clip_limit[2];
-	uint16_t empty_counts;
-} __attribute__((__packed__)) GetAutomaticGainControlConfigResponse;
-
-typedef struct {
-	TFPMessageHeader header;
-	uint8_t callback_config;
-} __attribute__((__packed__)) SetCallbackConfig;
-
-typedef struct {
-	TFPMessageHeader header;
-} __attribute__((__packed__)) GetCallbackConfig;
-
-typedef struct {
-	TFPMessageHeader header;
-	uint8_t callback_config;
-} __attribute__((__packed__)) GetCallbackConfigResponse;
+} __attribute__((__packed__)) GetHighContrastImageLowLevel;
 
 typedef struct {
 	TFPMessageHeader header;
 	uint16_t stream_chunk_offset;
 	uint8_t stream_chunk_data[62];
-} __attribute__((__packed__)) ImageLowLevelCallback;
+} __attribute__((__packed__)) GetHighContrastImageLowLevelResponse;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetTemperatureImageLowLevel;
 
 typedef struct {
 	TFPMessageHeader header;
 	uint16_t stream_chunk_offset;
 	uint16_t stream_chunk_data[31];
-} __attribute__((__packed__)) RawImageLowLevelCallback;
+} __attribute__((__packed__)) GetTemperatureImageLowLevelResponse;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetStatistics;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t spotmeter_statistics[4];
+	uint16_t temperatures[4];
+	uint8_t  resolution;
+	uint16_t status;
+} __attribute__((__packed__)) GetStatisticsResponse;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t resolution;
+} __attribute__((__packed__)) SetResolution;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetResolution;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t resolution;
+} __attribute__((__packed__)) GetResolutionResponse;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t region_of_interest[4];
+} __attribute__((__packed__)) SetSpotmeterConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetSpotmeterConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t region_of_interest[4];
+} __attribute__((__packed__)) GetSpotmeterConfigResponse;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t region_of_interest[4];
+	uint16_t dampening_factor;
+	uint16_t clip_limit[2];
+	uint16_t empty_counts;
+} __attribute__((__packed__)) SetHighContrastConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetHighContrastConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t region_of_interest[4];
+	uint16_t dampening_factor;
+	uint16_t clip_limit[2];
+	uint16_t empty_counts;
+} __attribute__((__packed__)) GetHighContrastConfigResponse;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) SetImageTransferConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetImageTransferConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) GetImageTransferConfigResponse;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t stream_chunk_offset;
+	uint8_t stream_chunk_data[62];
+} __attribute__((__packed__)) HighContrastImageLowLevelCallback;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t stream_chunk_offset;
+	uint16_t stream_chunk_data[31];
+} __attribute__((__packed__)) TemperatureImageLowLevelCallback;
 
 
 // Function prototypes
-BootloaderHandleMessageResponse set_automatic_gain_control_config(const SetAutomaticGainControlConfig *data);
-BootloaderHandleMessageResponse get_automatic_gain_control_config(const GetAutomaticGainControlConfig *data, GetAutomaticGainControlConfigResponse *response);
-BootloaderHandleMessageResponse set_callback_config(const SetCallbackConfig *data);
-BootloaderHandleMessageResponse get_callback_config(const GetCallbackConfig *data, GetCallbackConfigResponse *response);
+BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighContrastImageLowLevel *data, GetHighContrastImageLowLevelResponse *response);
+BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTemperatureImageLowLevel *data, GetTemperatureImageLowLevelResponse *response);
+BootloaderHandleMessageResponse get_statistics(const GetStatistics *data, GetStatisticsResponse *response);
+BootloaderHandleMessageResponse set_resolution(const SetResolution *data);
+BootloaderHandleMessageResponse get_resolution(const GetResolution *data, GetResolutionResponse *response);
+BootloaderHandleMessageResponse set_spotmeter_config(const SetSpotmeterConfig *data);
+BootloaderHandleMessageResponse get_spotmeter_config(const GetSpotmeterConfig *data, GetSpotmeterConfigResponse *response);
+BootloaderHandleMessageResponse set_high_contrast_config(const SetHighContrastConfig *data);
+BootloaderHandleMessageResponse get_high_contrast_config(const GetHighContrastConfig *data, GetHighContrastConfigResponse *response);
+BootloaderHandleMessageResponse set_image_transfer_config(const SetImageTransferConfig *data);
+BootloaderHandleMessageResponse get_image_transfer_config(const GetImageTransferConfig *data, GetImageTransferConfigResponse *response);
 
 // Callbacks
-bool handle_image_low_level_callback(void);
-bool handle_raw_image_low_level_callback(void);
+bool handle_high_contrast_image_low_level_callback(void);
+bool handle_temperature_image_low_level_callback(void);
 
 #define COMMUNICATION_CALLBACK_TICK_WAIT_MS 1
 #define COMMUNICATION_CALLBACK_HANDLER_NUM 2
 #define COMMUNICATION_CALLBACK_LIST_INIT \
-	handle_image_low_level_callback, \
-	handle_raw_image_low_level_callback, \
+	handle_high_contrast_image_low_level_callback, \
+	handle_temperature_image_low_level_callback, \
 
 
 #endif

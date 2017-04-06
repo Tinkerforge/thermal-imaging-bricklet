@@ -205,8 +205,13 @@ typedef enum {
 static LeptonIRQState lepton_irq_state = LEPTON_IRQ_STATE_SYNC;
 
 void __attribute__((optimize("-O3"))) lepton_sync_handler(void) {
-	if(!lepton.sync_done || lepton.active_interface != LEPTON_INTERFACE_SPI) {
+	if(!lepton.sync_done || lepton.active_interface != LEPTON_INTERFACE_SPI || !XMC_GPIO_GetInput(LEPTON_SELECT_PIN)) {
 		return;
+	}
+
+	// Make sure SPI FIFO is flushed
+	for(uint8_t i = 0; i < 32; i++) {
+		LEPTON_SPI->OUTR;
 	}
 
 	if(lepton.state == LEPTON_STATE_READ_FRAME) {
@@ -227,7 +232,7 @@ void __attribute__((optimize("-O3"))) lepton_sync_handler(void) {
 	LEPTON_SPI_WRITE_16();
 }
 
-void __attribute__((optimize("-O3"))) lepton_rx_read_irq_handler(void) {
+void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) lepton_rx_read_irq_handler(void) {
 	if(lepton_irq_state == LEPTON_IRQ_STATE_SYNC) {
 		LEPTON_SPI_READ_2();
 		if(lepton_frame_pointer != lepton_frame_end_of_first_packet) {
@@ -239,7 +244,7 @@ void __attribute__((optimize("-O3"))) lepton_rx_read_irq_handler(void) {
 				LEPTON_SET_SPI_LIMIT(1);
 			}
 		} else {
-			if((lepton.frame.data.packets[0].vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) == LEPTON_SPI_DISCARD_PACKET_ID_MASK) {
+			if((lepton.frame.data.packets[0].vospi.id & LEPTON_SPI_PACKET_ID_MASK) != 0) {
 				lepton_frame_pointer = lepton_frame_start;
 			} else {
 				lepton_irq_state = LEPTON_IRQ_STATE_DATA;
@@ -261,14 +266,16 @@ void __attribute__((optimize("-O3"))) lepton_rx_read_irq_handler(void) {
 				LEPTON_SET_SPI_LIMIT(11);
 			}
 		} else {
-			lepton.state = LEPTON_STATE_WRITE_FRAME;
+			if(lepton_check_crc_of_first_packet(&lepton)) {
+				lepton.state = LEPTON_STATE_WRITE_FRAME;
+			}
 			lepton.config_handle_now = true;
 			XMC_GPIO_SetOutputHigh(LEPTON_SELECT_PIN);
 		}
 	}
 }
 
-void __attribute__((optimize("-O3"))) lepton_rx_remove_irq_handler(void) {
+void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) lepton_rx_remove_irq_handler(void) {
 	if(lepton_irq_state == LEPTON_IRQ_STATE_SYNC) {
 		LEPTON_SPI_REMOVE_2();
 		if(lepton_frame_pointer_dummy != lepton_frame_end_of_first_packet) {
@@ -280,7 +287,7 @@ void __attribute__((optimize("-O3"))) lepton_rx_remove_irq_handler(void) {
 				LEPTON_SET_SPI_LIMIT(1);
 			}
 		} else {
-			if((lepton.frame.data.packets[0].vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) == LEPTON_SPI_DISCARD_PACKET_ID_MASK) {
+			if((lepton.frame.data.packets[0].vospi.id & LEPTON_SPI_PACKET_ID_MASK) != 0) {
 				lepton_frame_pointer_dummy = lepton_frame_start;
 			} else {
 				lepton_irq_state = LEPTON_IRQ_STATE_DATA;
@@ -498,7 +505,7 @@ void lepton_init_spi(Lepton *lepton) {
 	// MISO pin configuration
 	const XMC_GPIO_CONFIG_t miso_pin_config = {
 		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
-		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD
+		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_LARGE
 	};
 
 	// SCLK pin configuration
@@ -586,7 +593,7 @@ void lepton_init_i2c(Lepton *lepton) {
 	// MISO pin configuration
 	const XMC_GPIO_CONFIG_t miso_pin_config = {
 		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
-		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD
+		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_LARGE
 	};
 
 	// SCLK pin configuration
@@ -595,8 +602,15 @@ void lepton_init_i2c(Lepton *lepton) {
 		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
 	};
 
+	// SELECT pin configuration
+	const XMC_GPIO_CONFIG_t select_pin_config = {
+		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
+		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
+	};
+
 	XMC_GPIO_Init(LEPTON_SCLK_PIN, &sclk_pin_config);
 	XMC_GPIO_Init(LEPTON_MISO_PIN, &miso_pin_config);
+	XMC_GPIO_Init(LEPTON_SELECT_PIN, &select_pin_config);
 
 	LEPTON_SPI->SCTR |= USIC_CH_SCTR_PDL_Msk; // Set passive data level to 1
 	LEPTON_SPI_CHANNEL->DX1CR &= ~USIC_CH_DX1CR_DPOL_Msk; // Set input control register back to default
@@ -647,7 +661,7 @@ void lepton_init_gpio(Lepton *lepton) {
 
 	const XMC_GPIO_CONFIG_t sync_pin_config = {
 		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
-		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD
+		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_LARGE
 	};
 	XMC_GPIO_Init(P0_0, &sync_pin_config); // TODO: Remove me for release version
 
@@ -687,11 +701,32 @@ void lepton_init(Lepton *lepton) {
 	lepton->agc.clip_limit[0]         = 4800;
 	lepton->agc.clip_limit[1]         = 512;
 	lepton->agc.empty_counts          = 2;
+	lepton->spotmeter_roi[0]          = 39;
+	lepton->spotmeter_roi[1]          = 29;
+	lepton->spotmeter_roi[2]          = 40;
+	lepton->spotmeter_roi[3]          = 30;
+	lepton->resolution                = 1;
+	lepton->current_callback_config   = THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE;
 
 	lepton_init_gpio(lepton);
 	lepton_init_i2c(lepton);
 	lepton_reset(lepton);
-	XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
+}
+
+bool lepton_check_crc_of_first_packet(Lepton *lepton) {
+	// First sanity check the id.
+	if(((lepton->frame.data.packets[0].vospi.id & LEPTON_SPI_DISCARD_PACKET_ID_MASK) != LEPTON_SPI_DISCARD_PACKET_ID_MASK) &&
+	   ((lepton->frame.data.packets[0].vospi.id & 0x00FF) > LEPTON_FRAME_ROWS)) {
+		return false;
+	}
+
+	// Remove first 4 bits of id, set crc to 0 in packet to calculate CRC
+	// See p52ff in datasheet.
+	lepton->frame.data.packets[0].vospi.id &= LEPTON_SPI_PACKET_ID_MASK;
+	const uint16_t crc_lepton = lepton->frame.data.packets[0].vospi.crc;
+	lepton->frame.data.packets[0].vospi.crc = 0;
+
+	return crc_lepton == crc16_ccitt_16in(lepton->frame.data.packets[0].buffer, LEPTON_PACKET_SIZE);
 }
 
 void lepton_handle_reset(Lepton *lepton) {
@@ -722,6 +757,7 @@ void lepton_handle_reset(Lepton *lepton) {
 
 void lepton_handle_init(Lepton *lepton) {
 	uint32_t enable = 1;
+	lepton_attribute_write(lepton, LEPTON_CID_AGC_CALC_ENABLE_STATE, 2, (uint16_t*)&enable);
 	lepton_attribute_write(lepton, LEPTON_CID_AGC_ENABLE_STATE, 2, (uint16_t*)&enable);
 
 	uint32_t telemetry_location = 1; // footer
@@ -739,11 +775,22 @@ void lepton_handle_init(Lepton *lepton) {
 	while(oem_status != 0) {
 		lepton_attribute_read(lepton, LEPTON_CID_OEM_STATUS, 2, (uint16_t*)&oem_status);
 	}
+
+	uint32_t rad_status = 1;
+	while(rad_status != 0) {
+		lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+	}
+	uint32_t tlinear_enable = 0;
+	lepton_attribute_write(lepton, LEPTON_CID_RAD_TLINEAR_ENABLE_STATE, 2, (uint16_t*)&tlinear_enable);
+	while(rad_status != 0) {
+		lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+	}
 	lepton->state = LEPTON_STATE_SYNC;
 }
 
 void lepton_handle_sync(Lepton *lepton) {
 	if(lepton->sync_start_time == 0) {
+		lepton->sync_done = false;
 		lepton_init_spi(lepton);
 		lepton->packet_next_id = 0;
 		lepton->image_buffer_receive_index = 0;
@@ -756,53 +803,87 @@ void lepton_handle_sync(Lepton *lepton) {
 	}
 
 	if(system_timer_is_time_elapsed_ms(lepton->sync_start_time, 190)) {
-
-		lepton_spi_deselect(lepton);
-
 		lepton->sync_start_time = 0;
 		lepton->state = LEPTON_STATE_READ_FRAME;
 		lepton->sync_done = true;
+		lepton_spi_deselect(lepton);
 	}
 }
 
 void lepton_handle_configuration(Lepton *lepton) {
 	if(lepton->config_handle_now) {
-		XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
 		lepton->config_handle_now = false;
-		if(lepton->config_agc_bitmask) {
+		if(lepton->config_bitmask) {
 			lepton_init_i2c(lepton);
 
-			if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_ENABLE) {
-				uint32_t enabled = 0;
-				if(lepton->current_callback_config == THERMAL_IMAGING_CALLBACK_CONFIG_CALLBACK_IMAGE) {
-					enabled = 1;
+			if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_ENABLE) {
+				uint32_t enabled = 1; // Enable tlinear in temperature mode
+				if((lepton->current_callback_config == THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE) ||
+				   (lepton->current_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE)) {
+					enabled = 0; // Disable tlinear in high contrast mode
+				}
+
+				uint32_t rad_status = 1;
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				lepton_attribute_write(lepton, LEPTON_CID_RAD_TLINEAR_ENABLE_STATE, 2, (uint16_t*)&enabled);
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+
+				if(enabled) {
+					enabled = 0; // Disable agc in temperature mode
+				} else {
+					enabled = 1; // Enable agc in high contrast mode
 				}
 
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_ENABLE_STATE, 2, (uint16_t*)&enabled);
-				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_ENABLE;
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_AGC_ENABLE;
 
-			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_ROI) {
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_ROI) {
 				uint16_t roi[4] = {lepton->agc.region_of_interest[0], lepton->agc.region_of_interest[1], lepton->agc.region_of_interest[2], lepton->agc.region_of_interest[3]};
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_ROI, 4, roi);
-				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_ROI;
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_AGC_ROI;
 
-			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_DAMPENING_FACTOR) {
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_DAMPENING_FACTOR) {
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_DAMPENING_FACTOR, 1, &lepton->agc.dampening_factor);
-				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_DAMPENING_FACTOR;
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_AGC_DAMPENING_FACTOR;
 
-			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_CLIP_LIMIT) {
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_CLIP_LIMIT) {
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_CLIP_LIMIT_HIGH, 1, &lepton->agc.clip_limit[0]);
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_CLIP_LIMIT_LOW,  1, &lepton->agc.clip_limit[1]);
-				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_CLIP_LIMIT;
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_AGC_CLIP_LIMIT;
 
-			} else if(lepton->config_agc_bitmask & LEPTON_CONFIG_AGC_BITMASK_EMPTY_COUNTS) {
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_EMPTY_COUNTS) {
 				lepton_attribute_write(lepton, LEPTON_CID_AGC_HEQ_EMPTY_COUNTS, 1, &lepton->agc.empty_counts);
-				lepton->config_agc_bitmask &= ~LEPTON_CONFIG_AGC_BITMASK_EMPTY_COUNTS;
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_AGC_EMPTY_COUNTS;
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_SPOTMETER_ROI) {
+				uint32_t rad_status = 1;
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				uint16_t roi[4] = {lepton->spotmeter_roi[1], lepton->spotmeter_roi[0], lepton->spotmeter_roi[3], lepton->spotmeter_roi[2]};
+				lepton_attribute_write(lepton, LEPTON_CID_RAD_SPOTMETER_ROI, 4, roi);
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_SPOTMETER_ROI;
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_RESOLUTION) {
+				uint32_t rad_status = 1;
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				uint32_t resolution = lepton->resolution;
+				lepton_attribute_write(lepton, LEPTON_CID_RAD_TLINEAR_RESOLUTION, 2, (uint16_t*)&resolution);
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_RESOLUTION;
 			}
 
 			lepton_init_spi(lepton);
 		}
-		XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 	}
 }
 

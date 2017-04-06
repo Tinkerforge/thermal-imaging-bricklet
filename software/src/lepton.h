@@ -398,6 +398,8 @@ typedef union {
 
 typedef union {
 	struct {
+		uint16_t id1;
+		uint16_t crc1;
 		uint16_t revision;
 		uint32_t uptime; // in ms
 		uint32_t status;
@@ -422,6 +424,8 @@ typedef union {
 		uint32_t video_output_format;
 		uint16_t log2_of_ffc_frames;
 		uint16_t reserved5[5];
+		uint16_t id2;
+		uint16_t crc2;
 		uint16_t reserved6[19];
 		uint16_t emissivity;
 		uint16_t background_temperature_kelvin;
@@ -432,6 +436,8 @@ typedef union {
 		uint16_t window_temperature_kelvin;
 		uint16_t window_reflected_temperature_kelvin;
 		uint16_t reserved7[53];
+		uint16_t id3;
+		uint16_t crc3;
 		uint16_t reserved8[5];
 		uint16_t gain_mode;
 		uint16_t effective_gain;
@@ -470,12 +476,16 @@ typedef union {
 } LeptonFrame;
 
 typedef enum {
-	LEPTON_CONFIG_AGC_BITMASK_ENABLE           = 1 << 0,
-	LEPTON_CONFIG_AGC_BITMASK_ROI              = 1 << 1,
-	LEPTON_CONFIG_AGC_BITMASK_DAMPENING_FACTOR = 1 << 2,
-	LEPTON_CONFIG_AGC_BITMASK_CLIP_LIMIT       = 1 << 3,
-	LEPTON_CONFIG_AGC_BITMASK_EMPTY_COUNTS     = 1 << 4
-} LeptonConfigAGCBitmask;
+	LEPTON_CONFIG_BITMASK_AGC_ENABLE           = 1 << 0,
+	LEPTON_CONFIG_BITMASK_AGC_ROI              = 1 << 1,
+	LEPTON_CONFIG_BITMASK_AGC_DAMPENING_FACTOR = 1 << 2,
+	LEPTON_CONFIG_BITMASK_AGC_CLIP_LIMIT       = 1 << 3,
+	LEPTON_CONFIG_BITMASK_AGC_EMPTY_COUNTS     = 1 << 4,
+	LEPTON_CONFIG_BITMASK_SPOTMETER_ROI        = 1 << 5,
+	LEPTON_CONFIG_BITMASK_RESOLUTION           = 1 << 6
+} LeptonConfigBitmask;
+
+
 
 typedef struct {
 	LeptonState state;
@@ -487,7 +497,7 @@ typedef struct {
 
 	uint8_t current_callback_config;
 	uint8_t stream_callback_config;
-	uint32_t config_agc_bitmask;
+	LeptonConfigBitmask config_bitmask;
 	bool config_handle_now;
 
 	uint32_t packet_next_id;
@@ -497,11 +507,15 @@ typedef struct {
 	LeptonFrame frame;
 
 	LeptonAutomaticGainControl agc;
+	uint8_t spotmeter_roi[4];
+	uint8_t resolution;
+	bool manual_transfer_ongoing;
 } Lepton;
 
 void lepton_init(Lepton *lepton);
 void lepton_tick(Lepton *lepton);
 
 bool lepton_is_ready(Lepton *lepton);
+bool lepton_check_crc_of_first_packet(Lepton *lepton);
 
 #endif
