@@ -1269,11 +1269,11 @@
   )
 
   (module kicad-libraries:Logo_31x31 (layer F.Cu) (tedit 4F1D86B0) (tstamp 589B87B6)
-    (at 198.5 112.3 270)
-    (fp_text reference G*** (at 1.34874 2.97434 270) (layer F.SilkS) hide
+    (at 193.6 116.4 90)
+    (fp_text reference G*** (at 1.34874 2.97434 90) (layer F.SilkS) hide
       (effects (font (size 0.29972 0.29972) (thickness 0.0762)))
     )
-    (fp_text value Logo_31x31 (at 1.651 0.59944 270) (layer F.SilkS) hide
+    (fp_text value Logo_31x31 (at 1.651 0.59944 90) (layer F.SilkS) hide
       (effects (font (size 0.29972 0.29972) (thickness 0.0762)))
     )
     (fp_poly (pts (xy 0 0) (xy 0.0381 0) (xy 0.0381 0.0381) (xy 0 0.0381)
@@ -7176,7 +7176,7 @@
   (gr_text "Copyright Tinkerforge GmbH 2017.\nThis documentation describes Open Hardware and is licensed under the\nCERN OHL v. 1.1.\nYou may redistribute and modify this documentation under the terms of the\nCERN OHL v.1.1. (http://ohwr.org/cernohl). This documentation is distributed\nWITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF\nMERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A\nPARTICULAR PURPOSE. Please see the CERN OHL v.1.1 for applicable\nconditions" (at 258.4 154.9) (layer Cmts.User)
     (effects (font (size 0.8 0.8) (thickness 0.2)))
   )
-  (gr_text Status (at 183.9 83.9 270) (layer F.SilkS)
+  (gr_text Status (at 184.3 83.3 90) (layer F.SilkS)
     (effects (font (size 0.7 0.7) (thickness 0.15)))
   )
   (gr_line (start 203.9 80.9) (end 168.9 80.9) (angle 90) (layer Edge.Cuts) (width 0.15))
@@ -7187,10 +7187,10 @@
   (gr_arc (start 203.9 83.4) (end 203.9 80.9) (angle 90) (layer Edge.Cuts) (width 0.15))
   (gr_arc (start 203.9 118.4) (end 206.4 118.4) (angle 90) (layer Edge.Cuts) (width 0.15))
   (gr_arc (start 168.9 118.4) (end 168.9 120.9) (angle 90) (layer Edge.Cuts) (width 0.15))
-  (gr_text "Thermal\nImaging\n1.0" (at 169.9 111.9 270) (layer F.SilkS)
+  (gr_text "Thermal\nImaging\n1.0" (at 169.9 111.9 90) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
-  (gr_text tinkerforge.com (at 194.6 113.9 270) (layer F.SilkS)
+  (gr_text tinkerforge.com (at 197.7 114.8 90) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
 
