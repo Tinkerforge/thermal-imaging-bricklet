@@ -208,13 +208,13 @@ BootloaderHandleMessageResponse set_spotmeter_config(const SetSpotmeterConfig *d
 	}
 
 	if((lepton.spotmeter_roi[0] != data->region_of_interest[0]) ||
-	   (lepton.spotmeter_roi[1] != (LEPTON_FRAME_ROWS-1 - data->region_of_interest[3])) ||
+	   (lepton.spotmeter_roi[1] != data->region_of_interest[1]) ||
 	   (lepton.spotmeter_roi[2] != data->region_of_interest[2]) ||
-	   (lepton.spotmeter_roi[3] != (LEPTON_FRAME_ROWS-1 - data->region_of_interest[1]))) {
+	   (lepton.spotmeter_roi[3] != data->region_of_interest[3])) {
 		lepton.spotmeter_roi[0] = data->region_of_interest[0];
-		lepton.spotmeter_roi[1] = LEPTON_FRAME_ROWS-1 - data->region_of_interest[3];
+		lepton.spotmeter_roi[1] = data->region_of_interest[1];
 		lepton.spotmeter_roi[2] = data->region_of_interest[2];
-		lepton.spotmeter_roi[3] = LEPTON_FRAME_ROWS-1 - data->region_of_interest[1];
+		lepton.spotmeter_roi[3] = data->region_of_interest[3];
 		lepton.config_bitmask  |= LEPTON_CONFIG_BITMASK_SPOTMETER_ROI;
 	}
 
@@ -224,9 +224,9 @@ BootloaderHandleMessageResponse set_spotmeter_config(const SetSpotmeterConfig *d
 BootloaderHandleMessageResponse get_spotmeter_config(const GetSpotmeterConfig *data, GetSpotmeterConfigResponse *response) {
 	response->header.length = sizeof(GetSpotmeterConfigResponse);
 	response->region_of_interest[0] = lepton.spotmeter_roi[0];
-	response->region_of_interest[1] = LEPTON_FRAME_ROWS-1 - lepton.spotmeter_roi[3];
+	response->region_of_interest[1] = lepton.spotmeter_roi[1];
 	response->region_of_interest[2] = lepton.spotmeter_roi[2];
-	response->region_of_interest[3] = LEPTON_FRAME_ROWS-1 - lepton.spotmeter_roi[1];
+	response->region_of_interest[3] = lepton.spotmeter_roi[3];
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
@@ -244,13 +244,13 @@ BootloaderHandleMessageResponse set_high_contrast_config(const SetHighContrastCo
 	}
 
 	if((lepton.agc.region_of_interest[0] != data->region_of_interest[0]) ||
-	   (lepton.agc.region_of_interest[1] != (LEPTON_FRAME_ROWS-1 - data->region_of_interest[3])) ||
+	   (lepton.agc.region_of_interest[1] != data->region_of_interest[1]) ||
 	   (lepton.agc.region_of_interest[2] != data->region_of_interest[2]) ||
-	   (lepton.agc.region_of_interest[3] != (LEPTON_FRAME_ROWS-1 - data->region_of_interest[1]))) {
+	   (lepton.agc.region_of_interest[3] != data->region_of_interest[3])) {
 		lepton.agc.region_of_interest[0] = data->region_of_interest[0];
-		lepton.agc.region_of_interest[1] = LEPTON_FRAME_ROWS-1 - data->region_of_interest[3];
+		lepton.agc.region_of_interest[1] = data->region_of_interest[1];
 		lepton.agc.region_of_interest[2] = data->region_of_interest[2];
-		lepton.agc.region_of_interest[3] = LEPTON_FRAME_ROWS-1 - data->region_of_interest[1];
+		lepton.agc.region_of_interest[3] = data->region_of_interest[3];
 		lepton.config_bitmask |= LEPTON_CONFIG_BITMASK_AGC_ROI;
 	}
 
@@ -277,8 +277,6 @@ BootloaderHandleMessageResponse set_high_contrast_config(const SetHighContrastCo
 BootloaderHandleMessageResponse get_high_contrast_config(const GetHighContrastConfig *data, GetHighContrastConfigResponse *response) {
 	response->header.length = sizeof(GetHighContrastConfigResponse);
 	memcpy(response->region_of_interest, &lepton.agc, sizeof(LeptonAutomaticGainControl));
-	response->region_of_interest[1] = LEPTON_FRAME_ROWS-1 - lepton.agc.region_of_interest[3];
-	response->region_of_interest[3] = LEPTON_FRAME_ROWS-1 - lepton.agc.region_of_interest[1];
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
@@ -309,7 +307,7 @@ bool handle_high_contrast_image_low_level_callback(void) {
 	static bool is_buffered = false;
 	static HighContrastImageLowLevelCallback cb;
 	static uint32_t packet_payload_index = 0;
-	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+	static LeptonPacket *lepton_packet = lepton.frame.data.packets;
 
 	if(!is_buffered) {
 		if(lepton.state != LEPTON_STATE_WRITE_FRAME) {
@@ -335,7 +333,7 @@ bool handle_high_contrast_image_low_level_callback(void) {
 				packet_payload_index++;
 			}
 
-			lepton_packet--;
+			lepton_packet++;
 			packet_payload_index = 0;
 			for(uint8_t i = length_first_packet; i < length; i++) {
 				cb.stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
@@ -352,7 +350,7 @@ bool handle_high_contrast_image_low_level_callback(void) {
 		if(lepton.image_buffer_stream_index == LEPTON_IMAGE_BUFFER_SIZE) {
 			lepton.state = LEPTON_STATE_READ_FRAME;
 			lepton.image_buffer_stream_index = 0;
-			lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+			lepton_packet = lepton.frame.data.packets;
 			packet_payload_index = 0;
 			lepton.stream_callback_config = lepton.current_callback_config;
 		}
@@ -372,7 +370,7 @@ bool handle_temperature_image_low_level_callback(void) {
 	static bool is_buffered = false;
 	static TemperatureImageLowLevelCallback cb;
 	static uint32_t packet_payload_index = 0;
-	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+	static LeptonPacket *lepton_packet = lepton.frame.data.packets;
 
 	if(!is_buffered) {
 		if(lepton.state != LEPTON_STATE_WRITE_FRAME) {
@@ -398,7 +396,7 @@ bool handle_temperature_image_low_level_callback(void) {
 				packet_payload_index++;
 			}
 
-			lepton_packet--;
+			lepton_packet++;
 			packet_payload_index = 0;
 			for(uint8_t i = length_first_packet; i < length; i++) {
 				cb.stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
@@ -415,7 +413,7 @@ bool handle_temperature_image_low_level_callback(void) {
 		if(lepton.image_buffer_stream_index == LEPTON_IMAGE_BUFFER_SIZE) {
 			lepton.state = LEPTON_STATE_READ_FRAME;
 			lepton.image_buffer_stream_index = 0;
-			lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+			lepton_packet = lepton.frame.data.packets;
 			packet_payload_index = 0;
 			lepton.stream_callback_config = lepton.current_callback_config;
 		}
