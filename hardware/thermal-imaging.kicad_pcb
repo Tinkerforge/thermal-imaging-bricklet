@@ -3,7 +3,7 @@
   (general
     (links 145)
     (no_connects 0)
-    (area 166.324999 80.824999 206.475001 120.975001)
+    (area 165.544999 80.044999 282.34286 161.24)
     (thickness 1.6)
     (drawings 12)
     (tracks 492)
@@ -248,7 +248,7 @@
       (net 1 GND))
   )
 
-  (module kicad-libraries:QFN24-4x4mm-0.5mm (layer F.Cu) (tedit 590CA070) (tstamp 589AF61B)
+  (module kicad-libraries:QFN24-4x4mm-0.5mm (layer F.Cu) (tedit 59C0E40C) (tstamp 589AF61B)
     (at 196.5 86.3 180)
     (tags "QFN 24pin 0.5")
     (path /5805EA54)
@@ -256,7 +256,7 @@
     (fp_text reference U1 (at 0 -0.4 180) (layer F.Fab)
       (effects (font (size 0.3 0.3) (thickness 0.075)))
     )
-    (fp_text value XMC1XXX24 (at 0 0.8 180) (layer F.Fab)
+    (fp_text value XMC1302-32 (at 0 0.8 180) (layer F.Fab)
       (effects (font (size 0.3 0.3) (thickness 0.075)))
     )
     (fp_line (start -1 -2) (end 2 -2) (layer F.Fab) (width 0.15))
