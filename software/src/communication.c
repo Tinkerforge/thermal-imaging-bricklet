@@ -156,26 +156,23 @@ BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTempera
 }
 
 BootloaderHandleMessageResponse get_statistics(const GetStatistics *data, GetStatisticsResponse *response) {
-	response->header.length             = sizeof(GetStatisticsResponse);
-	response->spotmeter_statistics[0]   = lepton.frame.data.telemetry.data.spotmeter_mean;
-	response->spotmeter_statistics[1]   = lepton.frame.data.telemetry.data.spotmeter_maximum;
-	response->spotmeter_statistics[2]   = lepton.frame.data.telemetry.data.spotmeter_minimum;
-	response->spotmeter_statistics[3]   = lepton.frame.data.telemetry.data.spotmeter_population;
+	response->header.length           = sizeof(GetStatisticsResponse);
+	response->spotmeter_statistics[0] = lepton.frame.data.telemetry.data.spotmeter_mean;
+	response->spotmeter_statistics[1] = lepton.frame.data.telemetry.data.spotmeter_maximum;
+	response->spotmeter_statistics[2] = lepton.frame.data.telemetry.data.spotmeter_minimum;
+	response->spotmeter_statistics[3] = lepton.frame.data.telemetry.data.spotmeter_population;
 
-	response->temperatures[0]           = lepton.frame.data.telemetry.data.fpa_temperature_kelvin;
-	response->temperatures[1]           = lepton.frame.data.telemetry.data.fpa_temperature_at_last_ffc_kelvin;
-	response->temperatures[2]           = lepton.frame.data.telemetry.data.housing_temperature_kelvin;
-	response->temperatures[3]           = lepton.frame.data.telemetry.data.housing_temperature_at_last_ffc;
+	response->temperatures[0]         = lepton.frame.data.telemetry.data.fpa_temperature_kelvin;
+	response->temperatures[1]         = lepton.frame.data.telemetry.data.fpa_temperature_at_last_ffc_kelvin;
+	response->temperatures[2]         = lepton.frame.data.telemetry.data.housing_temperature_kelvin;
+	response->temperatures[3]         = lepton.frame.data.telemetry.data.housing_temperature_at_last_ffc;
 
-	response->resolution                = lepton.frame.data.telemetry.data.tlinear_resolution;
+	response->resolution              = lepton.frame.data.telemetry.data.tlinear_resolution;
 
-	const uint32_t ls = lepton.frame.data.telemetry.data.status;
-	response->status = 0;
-	response->status |= ((ls >> 3) & 1) << 0;
-	response->status |= ((ls >> 4) & 3) << 1;
-	response->status |= ((ls >> 12) & 1) << 3;
-	response->status |= ((ls >> 15) & 1) << 4;
-	response->status |= ((ls >> 20) & 1) << 5;
+	const uint32_t status             = lepton.frame.data.telemetry.data.status;
+	response->ffc_status              = (status >> 4) & 0b11;
+	response->temperature_warning    |= ((status >> 15) & 1) << 0;
+	response->temperature_warning    |= ((status >> 20) & 1) << 1;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

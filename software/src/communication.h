@@ -86,7 +86,8 @@ typedef struct {
 	uint16_t spotmeter_statistics[4];
 	uint16_t temperatures[4];
 	uint8_t  resolution;
-	uint16_t status;
+	uint8_t  ffc_status;
+	uint8_t  temperature_warning;
 } __attribute__((__packed__)) GetStatisticsResponse;
 
 typedef struct {
