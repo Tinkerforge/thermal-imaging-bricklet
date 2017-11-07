@@ -373,7 +373,7 @@ void lepton_i2c_read(Lepton *lepton, const uint16_t reg, const uint32_t length, 
 	uint32_t data_index = 0;
 	bool high = true;
 	while(fifo_index < length*2) {
-		while(!XMC_USIC_CH_RXFIFO_IsFull(LEPTON_I2C)) {
+		while(!XMC_USIC_CH_TXFIFO_IsFull(LEPTON_I2C)) {
 			if(fifo_index < length*2) {
 				if(fifo_index+1 == length*2) {
 					XMC_I2C_CH_MasterReceiveNack(LEPTON_I2C);
