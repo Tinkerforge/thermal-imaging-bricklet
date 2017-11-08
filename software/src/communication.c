@@ -171,8 +171,7 @@ BootloaderHandleMessageResponse get_statistics(const GetStatistics *data, GetSta
 
 	const uint32_t status             = lepton.frame.data.telemetry.data.status;
 	response->ffc_status              = (status >> 4) & 0b11;
-	response->temperature_warning    |= ((status >> 15) & 1) << 0;
-	response->temperature_warning    |= ((status >> 20) & 1) << 1;
+	response->temperature_warning     = (((status >> 15) & 1) << 0) | (((status >> 20) & 1) << 1);
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
