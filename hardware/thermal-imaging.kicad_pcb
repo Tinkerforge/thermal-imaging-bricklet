@@ -7479,7 +7479,7 @@
       (net 1 GND))
     (pad SHD smd rect (at -2.7 -5.3 90) (size 0.65 0.65) (layers F.Cu F.Paste F.Mask)
       (net 1 GND))
-    (model Sensors_Detectors/FLIR-500-0763-01_Module+Socket.wrl
+    (model Sensors_Detectors/FLIR-500-0763-01_module_socket.wrl
       (at (xyz 0 0 0.08))
       (scale (xyz 1 1 1))
       (rotate (xyz -90 0 90))
