@@ -41,9 +41,9 @@ if __name__ == "__main__":
     # Enable high contrast image transfer for getter
     ti.set_image_transfer_config(ti.IMAGE_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE)
 
-    # If change between transfer modes we have to wait until one more image is taken
-    # after the mode is set and the first image is saved we can call
-    # get_high_contrast_image any time.
+    # If we change between transfer modes we have to wait until one more
+    # image is taken after the mode is set and the first image is saved 
+    # we can call get_high_contrast_image any time.
     time.sleep(0.5)
 
     # Get image data

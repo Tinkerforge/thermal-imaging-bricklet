@@ -20,7 +20,7 @@ if __name__ == "__main__":
     ipcon.connect(HOST, PORT) # Connect to brickd
     # Don't use device before ipcon is connected
 
-    # Register illuminance callback to function cb_high_contrast_image
+    # Register high contrast callback to function cb_high_contrast_image
     ti.register_callback(ti.CALLBACK_HIGH_CONTRAST_IMAGE, cb_high_contrast_image)
 
     # Enable high contrast image transfer for callback
