@@ -24,6 +24,8 @@ import javax.swing.JLabel;
 //
 
 public class ExampleLiveVideo extends JFrame  {
+	static final long serialVersionUID = 42L;
+
 	private static final String HOST = "localhost";
 	private static final int PORT = 4223;
 	private static final String UID = "XYZ"; // Change to your UID
@@ -114,9 +116,9 @@ public class ExampleLiveVideo extends JFrame  {
     }
 
 	public static void main(String args[]) throws Exception {
-        EventQueue.invokeLater(() -> {
-            ExampleLiveVideo elv = new ExampleLiveVideo();
-            elv.setVisible(true);
-        });
+		EventQueue.invokeLater(() -> {
+			ExampleLiveVideo elv = new ExampleLiveVideo();
+			elv.setVisible(true);
+		});
 	}
 }
