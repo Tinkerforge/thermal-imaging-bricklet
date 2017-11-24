@@ -20,7 +20,7 @@ class Example
 		ipcon.Connect(HOST, PORT); // Connect to brickd
 		// Don't use device before ipcon is connected
 
-		// Register high contrast callback to function cb_high_contrast_image
+		// Register high contrast callback to function HighContrastImageCB
     	ti.HighContrastImageCallback += HighContrastImageCB;
 
     	// Enable high contrast image transfer for callback
