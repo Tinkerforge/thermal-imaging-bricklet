@@ -26,7 +26,6 @@
 
 #include "bricklib2/bootloader/bootloader.h"
 #include "bricklib2/hal/system_timer/system_timer.h"
-#include "bricklib2/hal/uartbb/uartbb.h"
 #include "bricklib2/utility/communication_callback.h"
 #include "communication.h"
 #include "lepton.h"
@@ -34,9 +33,6 @@
 Lepton lepton;
 
 int main(void) {
-	uartbb_init();
-	uartbb_puts("Start Thermal Imaging Bricklet\n\r");
-
 	lepton_init(&lepton);
 
 	while(true) {

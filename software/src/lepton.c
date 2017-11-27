@@ -27,7 +27,6 @@
 #include "configs/config_lepton.h"
 
 #include "bricklib2/hal/system_timer/system_timer.h"
-#include "bricklib2/hal/uartbb/uartbb.h"
 #include "bricklib2/utility/crc16.h"
 
 #include "communication.h"
