@@ -8,7 +8,7 @@ UID = "XYZ" # Change XYZ to the UID of your Thermal Imaging Bricklet
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
 
-# Callback function for high contrast image
+# Callback function for high contrast image callback
 def cb_high_contrast_image(image):
     # image is a tuple of size 80*60 with 8 bit grey value for each element
     pass
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     ipcon.connect(HOST, PORT) # Connect to brickd
     # Don't use device before ipcon is connected
 
-    # Register high contrast callback to function cb_high_contrast_image
+    # Register high contrast image callback to function cb_high_contrast_image
     ti.register_callback(ti.CALLBACK_HIGH_CONTRAST_IMAGE, cb_high_contrast_image)
 
     # Enable high contrast image transfer for callback

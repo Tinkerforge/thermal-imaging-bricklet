@@ -1,18 +1,19 @@
+using System;
 using Tinkerforge;
 
 class Example
 {
 	private static string HOST = "localhost";
 	private static int PORT = 4223;
-	private static string UID = "XYZ"; // Change to your UID
+	private static string UID = "XYZ"; // Change XYZ to the UID of your Thermal Imaging Bricklet
 
-	// Callback function for the high contrast image
+	// Callback function for high contrast image callback
 	static void HighContrastImageCB(BrickletThermalImaging sender, byte[] image)
 	{
 		// image is a array of size 80*60 with 8 bit grey value for each element
 	}
 
-	static void Main() 
+	static void Main()
 	{
 		IPConnection ipcon = new IPConnection(); // Create IP connection
 		BrickletThermalImaging ti = new BrickletThermalImaging(UID, ipcon); // Create device object
@@ -20,14 +21,14 @@ class Example
 		ipcon.Connect(HOST, PORT); // Connect to brickd
 		// Don't use device before ipcon is connected
 
-		// Register high contrast callback to function HighContrastImageCB
-    	ti.HighContrastImageCallback += HighContrastImageCB;
+		// Register high contrast image callback to function HighContrastImageCB
+		ti.HighContrastImageCallback += HighContrastImageCB;
 
-    	// Enable high contrast image transfer for callback
-    	ti.SetImageTransferConfig(BrickletThermalImaging.IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE);
+		// Enable high contrast image transfer for callback
+		ti.SetImageTransferConfig(BrickletThermalImaging.IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE);
 
-		System.Console.WriteLine("Press enter to exit");
-		System.Console.ReadLine();
+		Console.WriteLine("Press enter to exit");
+		Console.ReadLine();
 		ipcon.Disconnect();
 	}
 }
