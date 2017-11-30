@@ -27,7 +27,7 @@ ipcon.on(Tinkerforge.IPConnection.CALLBACK_CONNECTED,
 ti.on(Tinkerforge.BrickletThermalImaging.CALLBACK_HIGH_CONTRAST_IMAGE,
     // Callback function for high contrast image callback
     function (image) {
-        console.log('Image: ' + image);
+
     }
 );
 

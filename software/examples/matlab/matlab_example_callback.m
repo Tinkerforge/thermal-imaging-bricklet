@@ -26,5 +26,5 @@ end
 
 % Callback function for high contrast image callback
 function cb_high_contrast_image(e)
-    fprintf('Image: %i\n', e.image);
+
 end

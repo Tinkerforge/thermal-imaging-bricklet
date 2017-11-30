@@ -14,7 +14,8 @@ type
     ipcon: TIPConnection;
     ti: TBrickletThermalImaging;
   public
-    procedure HighContrastImageCB(sender: TBrickletThermalImaging; const image: byte);
+    procedure HighContrastImageCB(sender: TBrickletThermalImaging;
+                                  const image: array of byte);
     procedure Execute;
   end;
 
@@ -28,9 +29,9 @@ var
 
 { Callback procedure for high contrast image callback }
 procedure TExample.HighContrastImageCB(sender: TBrickletThermalImaging;
-                                       const image: byte);
+                                       const image: array of byte);
 begin
-  WriteLn(Format('Image: %d', [image]));
+
 end;
 
 procedure TExample.Execute;

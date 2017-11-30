@@ -9,8 +9,9 @@ Module ExampleCallback
     Const UID As String = "XYZ" ' Change XYZ to the UID of your Thermal Imaging Bricklet
 
     ' Callback subroutine for high contrast image callback
-    Sub HighContrastImageCB(ByVal sender As BrickletThermalImaging, ByVal image As Byte)
-        Console.WriteLine("Image: " + image.ToString())
+    Sub HighContrastImageCB(ByVal sender As BrickletThermalImaging, _
+                            ByVal image As Byte())
+
     End Sub
 
     Sub Main()

@@ -15,7 +15,7 @@ const UID = 'XYZ'; // Change XYZ to the UID of your Thermal Imaging Bricklet
 // Callback function for high contrast image callback
 function cb_highContrastImage($image)
 {
-    echo "Image: $image\n";
+
 }
 
 $ipcon = new IPConnection(); // Create IP connection

@@ -20,7 +20,7 @@ ipcon.connect HOST, PORT # Connect to brickd
 
 # Register high contrast image callback
 ti.register_callback(BrickletThermalImaging::CALLBACK_HIGH_CONTRAST_IMAGE) do |image|
-  puts "Image: #{image}"
+
 end
 
 # Enable high contrast image transfer for callback

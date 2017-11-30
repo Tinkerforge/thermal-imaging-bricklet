@@ -14,7 +14,7 @@ sub cb_high_contrast_image
 {
     my ($image) = @_;
 
-    print "Image: $image\n";
+
 }
 
 my $ipcon = Tinkerforge::IPConnection->new(); # Create IP connection

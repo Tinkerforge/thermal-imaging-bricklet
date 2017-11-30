@@ -53,7 +53,7 @@
                 ti.on(Tinkerforge.BrickletThermalImaging.CALLBACK_HIGH_CONTRAST_IMAGE,
                     // Callback function for high contrast image callback
                     function (image) {
-                        textArea.value += 'Image: ' + image + '\n';
+
                         textArea.scrollTop = textArea.scrollHeight;
                     }
                 );
