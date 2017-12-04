@@ -66,7 +66,7 @@ function matlab_example_create_image()
 
   % Use palette mapping to create thermal image coloring
   for i = 1:1:4800
-    % Because in ATLAB/Octave indexing starts from 1
+    % Because in MATLAB/Octave indexing starts from 1
     if image(i) < 255
       image(i) = image(i) + 1;
     end
