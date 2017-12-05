@@ -41,7 +41,7 @@ function matlab_example_live_video()
   % Function to handle example exit
   function end_example()
       ipcon.disconnect();
-      frameExample.setVisible(false);
+      frameExample.hide();
   end
 
   ipcon = IPConnection(); % Create IP connection
@@ -63,7 +63,7 @@ function matlab_example_live_video()
 
   % Prepare the JPanel and the JFrame
   panelExample = JPanel();
-  frameExample = JFrame();
+  frameExample = JFrame('Example Live Video');
 
   set(frameExample, 'WindowClosingCallback', @(h, e) end_example());
   frameExample.setSize(WIDTH*SCALE, HEIGHT*SCALE);
@@ -85,21 +85,12 @@ function matlab_example_live_video()
   labelExample = JLabel(ImageIcon(resizedBufferedImage));
   labelExample.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-  % Prepare JButton
-  buttonExample = JButton('End Example');
-  set(buttonExample, ...
-      'MouseClickedCallback', ...
-      @(h, e) frameExample.dispatchEvent(WindowEvent(frameExample, ...
-                                                     WindowEvent.WINDOW_CLOSING)));
-  buttonExample.setAlignmentX(Component.CENTER_ALIGNMENT);
-
   % Populate the layout
   panelExample.add(labelExample);
-  panelExample.add(buttonExample);
 
   frameExample.getContentPane().add(panelExample);
   frameExample.pack();
-  frameExample.setVisible(true);
+  frameExample.show();
 
   % Register high contrast image callback to function cb_high_contrast_image
   set(ti, 'HighContrastImageCallback', @(h, e) cb_high_contrast_image(e, ...

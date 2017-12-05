@@ -11,7 +11,11 @@ function matlab_example_create_image()
   PORT = 4223;
   UID = 'XYZ'; % Change XYZ to the UID of your Thermal Imaging Bricklet
 
-% Creates standard thermal image color palette (blue=cold, red=hot)
+  WIDTH = 80;
+  HEIGHT = 60;
+  SCALE = 10;
+
+  % Creates standard thermal image color palette (blue=cold, red=hot)
   paletteR = zeros(1, 255, 'int32');
   paletteG = zeros(1, 255, 'int32');
   paletteB = zeros(1, 255, 'int32');
@@ -81,11 +85,11 @@ function matlab_example_create_image()
   end
 
   % Create BufferedImage with data
-  bufferedImage = BufferedImage(80, 60, BufferedImage.TYPE_INT_ARGB);
-  bufferedImage.setRGB(0, 0, 80, 60, image, 0, 80);
+  bufferedImage = BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
+  bufferedImage.setRGB(0, 0, WIDTH, HEIGHT, image, 0, WIDTH);
 
   % Scale to 800x600 and save thermal image!
-  ImageIO.write(resize(bufferedImage, 80*10, 60*10), 'png', File('thermal_image.png'));
+  ImageIO.write(resize(bufferedImage, WIDTH*SCALE, HEIGHT*SCALE), 'png', File('thermal_image.png'));
 
   input('Press key to exit\n', 's');
 
