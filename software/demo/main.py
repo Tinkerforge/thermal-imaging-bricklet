@@ -90,6 +90,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ti = BrickletThermalImaging(UID_TI, self.ipcon)
         ti.register_callback(ti.CALLBACK_HIGH_CONTRAST_IMAGE, self.qtcb_high_contrast_image.emit)
         ti.set_image_transfer_config(ti.IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE)
+        
+        ti.set_spotmeter_config([35, 25, 45, 35])
+        #print(ti.get_spotmeter_config())
+
 
         al = BrickletAmbientLightV2(UID_AL, self.ipcon)
         al.register_callback(al.CALLBACK_ILLUMINANCE, self.cb_illuminance)
@@ -113,6 +117,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 b = 0
             self.rgb_lookup.append((r, g, b))
+        
+        def paintEvent(event):
+            painter = QPainter(self.label_image)
+            
+            #painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
+            
+            w = self.label_image.size().width()
+            h = self.label_image.size().height()
+            
+            painter.scale(w / 80.0, h / 60.0)
+            painter.drawImage(0, 0, self.image)
+        
+        self.label_image.paintEvent = paintEvent
 
         #self.qtcb_high_contrast_image.connect(self.cb_high_contrast_image)
 
@@ -180,7 +197,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def cb_humidity(self, humidity):
         #print("Humidity: " + str(humidity/100.0) + " %RH")
-        self.label_humidity.setText(str(humidity/100.0) + " %RH")
+        self.label_humidity.setText(str(humidity/100) + " %RH")
 
     def cb_illuminance(self, illuminance):
         #print("Illuminance: " + str(illuminance/100.0) + " Lux")
@@ -195,10 +212,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for i, value in enumerate(image):
             r, g, b = self.rgb_lookup[value]
             self.image.setPixel(QPoint(i%80, i//80), (r << 16) | (g << 8) | b)
-        self.label_image.setPixmap(QPixmap(self.image))
+        self.label_image.update()
+        #self.label_image.setPixmap(QPixmap(self.image))
 
 def main():
 
+    os.system('xset s off') # disable screensaver
+    os.system('xset -dpms') # disable display power management 
     args = sys.argv
 
     application = QApplication(args)
