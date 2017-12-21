@@ -22,16 +22,15 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.
 """
 
-# FIXME: the Stepper Brick position is represented as an int32_t. the position
-# can overflow between the minimum and maximum position. the code does not deal
-# with this (yet)
-
 import sip
 sip.setapi('QString', 2)
 sip.setapi('QVariant', 2)
 
 import os
 import sys
+
+import colorsys
+import math
 
 
 import time
@@ -40,9 +39,9 @@ import subprocess
 import threading
 from datetime import datetime
 
-from PyQt4.QtCore import pyqtSignal, Qt, QObject, QTimer, QEvent
+from PyQt4.QtCore import pyqtSignal, Qt, QObject, QTimer, QEvent, QSize, QPoint, QLine
 from PyQt4.QtGui import QApplication, QMainWindow, QIcon, QMessageBox, QStyle, \
-                        QStyleOptionSlider, QSlider, QFont
+                        QStyleOptionSlider, QSlider, QFont, QWidget, QImage, QPainter, QPen, QColor, QPixmap
 
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
@@ -50,9 +49,16 @@ from tinkerforge.bricklet_barometer import BrickletBarometer
 
 from ui_mainwindow import Ui_MainWindow
 
+HOST = "localhost"
+PORT = 4223
+UID = "XYZ"
+
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     qtcb_ipcon_enumerate = pyqtSignal(str, str, 'char', type((0,)), type((0,)), int, int)
     qtcb_ipcon_connected = pyqtSignal(int)
+
+    qtcb_high_contrast_image = pyqtSignal(object)
 
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
@@ -62,13 +68,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.qtcb_ipcon_enumerate.connect(self.cb_ipcon_enumerate)
         self.qtcb_ipcon_connected.connect(self.cb_ipcon_connected)
+        self.qtcb_high_contrast_image.connect(self.cb_high_contrast_image)
+        
+        self.image = QImage(QSize(80, 60), QImage.Format_RGB32)
 
         # create and setup ipcon
         self.ipcon = IPConnection()
+        self.ipcon.connect(HOST, PORT)
         self.ipcon.register_callback(IPConnection.CALLBACK_ENUMERATE,
                                      self.qtcb_ipcon_enumerate.emit)
         self.ipcon.register_callback(IPConnection.CALLBACK_CONNECTED,
                                      self.qtcb_ipcon_connected.emit)
+
+        ti = BrickletThermalImaging(UID, self.ipcon)
+        ti.register_callback(ti.CALLBACK_HIGH_CONTRAST_IMAGE, self.qtcb_high_contrast_image.emit)
+        ti.set_image_transfer_config(ti.IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE)
+        
+        self.rgb_lookup = []
+        for x in range(256):
+            x /= 255.0
+            r = int(round(255*math.sqrt(x)))
+            g = int(round(255*pow(x,3)))
+            if math.sin(2 * math.pi * x) >= 0:
+                b = int(round(255*math.sin(2 * math.pi * x)))
+            else:
+                b = 0
+            self.rgb_lookup.append((r, g, b))
+
+        #self.qtcb_high_contrast_image.connect(self.cb_high_contrast_image)
 
     def cb_ipcon_enumerate(self, uid, connected_uid, position,
                            hardware_version, firmware_version,
@@ -86,7 +113,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     combo.clear()
 
                 if combo.findData(uid) < 0:
-                    if connected_uid != '0':
+                    if conn0,6ected_uid != '0':
                         if connected_uid in self.devices and self.devices[connected_uid][1] in DEVICE_IDENTIFIERS:
                             connected_name = DEVICE_IDENTIFIERS[self.devices[connected_uid][1]]
                         else:
@@ -127,6 +154,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.ipcon.enumerate()
         except:
             pass
+
+    def cb_high_contrast_image(self, image):
+        if image != None:
+            self.new_image(image)
+
+    def new_image(self, image):
+
+        for i, value in enumerate(image):
+            r, g, b = self.rgb_lookup[value]
+            self.image.setPixel(QPoint(i%80, i//80), (r << 16) | (g << 8) | b)
+        self.label_image.setPixmap(QPixmap(self.image))
 
 def main():
 
