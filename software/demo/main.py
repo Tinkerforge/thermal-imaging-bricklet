@@ -46,13 +46,17 @@ from PyQt4.QtGui import QApplication, QMainWindow, QIcon, QMessageBox, QStyle, \
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
 from tinkerforge.bricklet_barometer import BrickletBarometer
+from tinkerforge.bricklet_humidity_v2 import BrickletHumidityV2
+from tinkerforge.bricklet_ambient_light_v2 import BrickletAmbientLightV2
 
 from ui_mainwindow import Ui_MainWindow
 
 HOST = "localhost"
 PORT = 4223
-UID = "XYZ"
-
+UID_TI = "XYZ"
+UID_AL = "yxP"
+UID_HU = "Djm"
+UID_BM = "vMD"
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     qtcb_ipcon_enumerate = pyqtSignal(str, str, 'char', type((0,)), type((0,)), int, int)
@@ -72,6 +76,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.image = QImage(QSize(80, 60), QImage.Format_RGB32)
 
+        # Add Tinkerforge logo
+        self.label_logo.setPixmap(QPixmap('logo_klein.png'))
+
         # create and setup ipcon
         self.ipcon = IPConnection()
         self.ipcon.connect(HOST, PORT)
@@ -80,9 +87,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ipcon.register_callback(IPConnection.CALLBACK_CONNECTED,
                                      self.qtcb_ipcon_connected.emit)
 
-        ti = BrickletThermalImaging(UID, self.ipcon)
+        ti = BrickletThermalImaging(UID_TI, self.ipcon)
         ti.register_callback(ti.CALLBACK_HIGH_CONTRAST_IMAGE, self.qtcb_high_contrast_image.emit)
         ti.set_image_transfer_config(ti.IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE)
+
+        al = BrickletAmbientLightV2(UID_AL, self.ipcon)
+        al.register_callback(al.CALLBACK_ILLUMINANCE, self.cb_illuminance)
+        al.set_illuminance_callback_period(500)
+        
+        hu = BrickletHumidityV2(UID_HU, self.ipcon)
+        hu.register_callback(hu.CALLBACK_HUMIDITY, self.cb_humidity)
+        hu.set_humidity_callback_configuration(500, False, "x", 0, 0)
+
+        bm = BrickletBarometer(UID_BM, self.ipcon)
+        bm.register_callback(bm.CALLBACK_AIR_PRESSURE, self.cb_air_pressure)
+        bm.set_air_pressure_callback_period(500)
         
         self.rgb_lookup = []
         for x in range(256):
@@ -158,6 +177,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def cb_high_contrast_image(self, image):
         if image != None:
             self.new_image(image)
+
+    def cb_humidity(self, humidity):
+        #print("Humidity: " + str(humidity/100.0) + " %RH")
+        self.label_humidity.setText(str(humidity/100.0) + " %RH")
+
+    def cb_illuminance(self, illuminance):
+        #print("Illuminance: " + str(illuminance/100.0) + " Lux")
+        self.label_brightness.setText(str(illuminance/100) + " Lux")
+
+    def cb_air_pressure(self, air_pressure):
+        #print("Air Pressure: " + str(air_pressure/1000.0) + " mbar")
+        self.label_airpressure.setText(str(air_pressure/1000) + " mbar")
 
     def new_image(self, image):
 
