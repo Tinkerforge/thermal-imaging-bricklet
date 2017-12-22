@@ -121,13 +121,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         def paintEvent(event):
             painter = QPainter(self.label_image)
             
-            #painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
+            painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
             
             w = self.label_image.size().width()
             h = self.label_image.size().height()
             
             painter.scale(w / 80.0, h / 60.0)
             painter.drawImage(0, 0, self.image)
+            #painter.fillRect(0,0,100,100, Qt.red)
         
         self.label_image.paintEvent = paintEvent
 
@@ -208,12 +209,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_airpressure.setText(str(air_pressure/1000) + " mbar")
 
     def new_image(self, image):
-
+        print "new image"
         for i, value in enumerate(image):
             r, g, b = self.rgb_lookup[value]
             self.image.setPixel(QPoint(i%80, i//80), (r << 16) | (g << 8) | b)
         self.label_image.update()
-        #self.label_image.setPixmap(QPixmap(self.image))
+        #
+        self.label_image.setPixmap(QPixmap(self.image))
 
 def main():
 
@@ -225,10 +227,10 @@ def main():
 
     main_window = MainWindow()
 
-    if '-fullscreen' in sys.argv:
-        main_window.showFullScreen()
-    else:
-        main_window.show()
+    #if '-fullscreen' in sys.argv:
+    main_window.showFullScreen()
+    #else:
+    #    main_window.show()
 
     sys.exit(application.exec_())
 
