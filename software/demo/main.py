@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Starter Kit: Camera Slider Demo
-Copyright (C) 2015 Matthias Bolte <matthias@tinkerforge.com>
+Demo Kit: CES 2018 FLIR
 
-main.py: Demo for Starter Kit: Camera Slider
+Copyright (C) 2017 Lukas Lauer <lukas@tinkerforge.com>
+
+main.py: Demo for Thermal Imaging and some other sensors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -53,6 +54,7 @@ from ui_mainwindow import Ui_MainWindow
 
 HOST = "localhost"
 PORT = 4223
+
 UID_TI = "XYZ"
 UID_AL = "yxP"
 UID_HU = "Djm"
@@ -128,7 +130,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             
             painter.scale(w / 80.0, h / 60.0)
             painter.drawImage(0, 0, self.image)
-            #painter.fillRect(0,0,100,100, Qt.red)
         
         self.label_image.paintEvent = paintEvent
 
@@ -209,13 +210,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_airpressure.setText(str(air_pressure/1000) + " mbar")
 
     def new_image(self, image):
-        print "new image"
+
         for i, value in enumerate(image):
             r, g, b = self.rgb_lookup[value]
             self.image.setPixel(QPoint(i%80, i//80), (r << 16) | (g << 8) | b)
         self.label_image.update()
-        #
-        self.label_image.setPixmap(QPixmap(self.image))
+        #self.label_image.setPixmap(QPixmap(self.image))
 
 def main():
 
@@ -227,10 +227,10 @@ def main():
 
     main_window = MainWindow()
 
-    #if '-fullscreen' in sys.argv:
-    main_window.showFullScreen()
-    #else:
-    #    main_window.show()
+    if '-fullscreen' in sys.argv:
+        main_window.showFullScreen()
+    else:
+        main_window.show()
 
     sys.exit(application.exec_())
 
