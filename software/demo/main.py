@@ -52,7 +52,7 @@ from tinkerforge.bricklet_ambient_light_v2 import BrickletAmbientLightV2
 
 from ui_mainwindow import Ui_MainWindow
 
-HOST = "localhost"
+HOST = "192.168.178.42"
 PORT = 4223
 
 UID_TI = "XYZ"
@@ -65,6 +65,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     qtcb_ipcon_connected = pyqtSignal(int)
 
     qtcb_high_contrast_image = pyqtSignal(object)
+
+    image_pixel_width = 1
+    crosshair_width = 1
 
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
@@ -89,11 +92,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ipcon.register_callback(IPConnection.CALLBACK_CONNECTED,
                                      self.qtcb_ipcon_connected.emit)
 
-        ti = BrickletThermalImaging(UID_TI, self.ipcon)
-        ti.register_callback(ti.CALLBACK_HIGH_CONTRAST_IMAGE, self.qtcb_high_contrast_image.emit)
-        ti.set_image_transfer_config(ti.IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE)
+        self.ti = BrickletThermalImaging(UID_TI, self.ipcon)
+        self.ti.register_callback(self.ti.CALLBACK_HIGH_CONTRAST_IMAGE, self.qtcb_high_contrast_image.emit)
+        self.ti.set_image_transfer_config(self.ti.IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE)
         
-        ti.set_spotmeter_config([35, 25, 45, 35])
+        self.ti.set_spotmeter_config([35, 25, 45, 35])
         #print(ti.get_spotmeter_config())
 
 
@@ -124,16 +127,53 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             painter = QPainter(self.label_image)
             
             painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
+            #painter = QPainter(self)
+            #painter.drawImage(event.rect(), self.image.scaledToWidth(self.width*self.image_pixel_width, Qt.SmoothTransformation))
             
             w = self.label_image.size().width()
             h = self.label_image.size().height()
             
             painter.scale(w / 80.0, h / 60.0)
             painter.drawImage(0, 0, self.image)
+            
+            if 35 != None and 45 != None:
+                pen = QPen()
+                pen.setColor(Qt.white)
+                pen.setWidth(0.2)
+                painter.setPen(pen)
+
+                from_x, from_y, to_x, to_y = [35, 25, 45, 35]
+
+                from_x = from_x*self.image_pixel_width+1
+                from_y = from_y*self.image_pixel_width+1
+                to_x = to_x*self.image_pixel_width+1
+                to_y = to_y*self.image_pixel_width+1
+
+                cross_x = from_x + (to_x-from_x)/2.0
+                cross_y = from_y + (to_y-from_y)/2.0
+
+                if to_x-from_x > 5 or to_y - from_y > 5:
+                    lines = [QLine(from_x, from_y, from_x+self.crosshair_width, from_y),
+                             QLine(from_x, from_y, from_x, from_y+self.crosshair_width),
+                             QLine(to_x, to_y, to_x, to_y-self.crosshair_width),
+                             QLine(to_x, to_y, to_x-self.crosshair_width, to_y),
+                             QLine(from_x, to_y, from_x, to_y-self.crosshair_width),
+                             QLine(from_x, to_y, from_x+self.crosshair_width, to_y),
+                             QLine(to_x, from_y, to_x, from_y+self.crosshair_width),
+                             QLine(to_x, from_y, to_x-self.crosshair_width, from_y)]
+                    painter.drawLines(lines)
+
+                lines = [QLine(cross_x-self.crosshair_width, cross_y, cross_x+self.crosshair_width, cross_y),
+                         QLine(cross_x, cross_y-self.crosshair_width, cross_x, cross_y+self.crosshair_width)]
+                painter.drawLines(lines)
+
+            self.update_spotmeter_roi_label()
         
         self.label_image.paintEvent = paintEvent
 
-        #self.qtcb_high_contrast_image.connect(self.cb_high_contrast_image)
+    def update_spotmeter_roi_label(self):
+        from_x, from_y, to_x, to_y = self.ti.get_spotmeter_config()
+        self.spotmeter_roi_label.setText('from <b>[{0}, {1}]</b> to <b>[{2}, {3}]</b>'.format(from_x, from_y, to_x, to_y))
 
     def cb_ipcon_enumerate(self, uid, connected_uid, position,
                            hardware_version, firmware_version,
@@ -197,6 +237,60 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if image != None:
             self.new_image(image)
 
+        print("New image")
+        self.statistics(self.ti.get_statistics())
+
+    def statistics(self, data):
+        self.valid_resolution = data.resolution
+        spot_mean = self.kelvin_to_degstr(data.spotmeter_statistics[0])
+        spot_max = self.kelvin_to_degstr(data.spotmeter_statistics[1])
+        spot_min = self.kelvin_to_degstr(data.spotmeter_statistics[2])
+        spot_pix = str(data.spotmeter_statistics[3])
+        self.spotmeter_mean_label.setText(spot_mean)
+        self.spotmeter_minimum_label.setText(spot_min)
+        self.spotmeter_maximum_label.setText(spot_max)
+        self.spotmeter_pixel_count_label.setText(spot_pix)
+
+        #temp_fpa = self.kelvin_to_degstr(data.temperatures[0], 1)
+        #temp_fpa_ffc = self.kelvin_to_degstr(data.temperatures[1], 1)
+        #temp_housing = self.kelvin_to_degstr(data.temperatures[2], 1)
+        #temp_housing_ffc = self.kelvin_to_degstr(data.temperatures[3], 1)
+        #self.temp_fpa_label.setText(temp_fpa)
+        #self.temp_fpa_ffc_label.setText(temp_fpa_ffc)
+        #self.temp_housing_label.setText(temp_housing)
+        #self.temp_housing_ffc_label.setText(temp_housing_ffc)
+
+        #sheet_green  = "QLabel { color: green; }"
+        #sheet_orange = "QLabel { color: orange; }"
+        #sheet_red    = "QLabel { color: red; }"
+
+        #if data.ffc_status == 0b00:
+        #    self.ffc_state_label.setStyleSheet(sheet_orange)
+        #    self.ffc_state_label.setText('Never Commanded')
+        #elif data.ffc_status == 0b01:
+        #    self.ffc_state_label.setStyleSheet(sheet_orange)
+        #    self.ffc_state_label.setText('Imminent')
+        #elif data.ffc_status == 0b10:
+        #    self.ffc_state_label.setStyleSheet(sheet_orange)
+        #    self.ffc_state_label.setText('In Progress')
+        #elif data.ffc_status == 0b11:
+        #    self.ffc_state_label.setStyleSheet(sheet_green)
+        #    self.ffc_state_label.setText('Complete')
+
+        #if data.temperature_warning[0]:
+        #    self.shutter_lockout_label.setStyleSheet(sheet_red)
+        #    self.shutter_lockout_label.setText('Yes')
+        #else:
+        #    self.shutter_lockout_label.setStyleSheet(sheet_green)
+        #    self.shutter_lockout_label.setText('No')
+
+        #if data.temperature_warning[1]:
+        #    self.overtemp_label.setStyleSheet(sheet_red)
+        #    self.overtemp_label.setText('Yes')
+        #else:
+        #    self.overtemp_label.setStyleSheet(sheet_green)
+        #    self.overtemp_label.setText('No')
+
     def cb_humidity(self, humidity):
         #print("Humidity: " + str(humidity/100.0) + " %RH")
         self.label_humidity.setText(str(humidity/100) + " %RH")
@@ -216,6 +310,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.image.setPixel(QPoint(i%80, i//80), (r << 16) | (g << 8) | b)
         self.label_image.update()
         #self.label_image.setPixmap(QPixmap(self.image))
+
+    def kelvin_to_degstr(self, value, res = None):
+        if res == None:
+            res = self.valid_resolution
+        if res == 0:
+            return "{0:.2f}".format(value/10.0 - 273.15)
+        else:
+            return "{0:.2f}".format(value/100.0 - 273.15)
 
 def main():
 

@@ -556,6 +556,192 @@
      <string>avg</string>
     </property>
    </widget>
+   <widget class="QLabel" name="spotmeter_minimum_label">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>240</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>99.99</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="spotmeter_maximum_label">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>260</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>99.99</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="spotmeter_mean_label">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>280</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>99.99</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="spotmeter_pixel_count_label">
+    <property name="geometry">
+     <rect>
+      <x>690</x>
+      <y>317</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>NaN</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="spotmeter_roi_label">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>330</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>NaN</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="spotmeter_pixel_count_label_2">
+    <property name="geometry">
+     <rect>
+      <x>720</x>
+      <y>317</y>
+      <width>51</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Pixels</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="degrees_label">
+    <property name="geometry">
+     <rect>
+      <x>775</x>
+      <y>240</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>°C</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="degrees_label_2">
+    <property name="geometry">
+     <rect>
+      <x>775</x>
+      <y>260</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>°C</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="degrees_label_3">
+    <property name="geometry">
+     <rect>
+      <x>775</x>
+      <y>280</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>°C</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>
