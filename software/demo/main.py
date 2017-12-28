@@ -52,7 +52,7 @@ from tinkerforge.bricklet_ambient_light_v2 import BrickletAmbientLightV2
 
 from ui_mainwindow import Ui_MainWindow
 
-HOST = "192.168.178.42"
+HOST = "localhost"
 PORT = 4223
 
 UID_TI = "XYZ"
@@ -82,7 +82,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.image = QImage(QSize(80, 60), QImage.Format_RGB32)
 
         # Add Tinkerforge logo
-        self.label_logo.setPixmap(QPixmap('logo_klein.png'))
+        # Adapt this path
+        self.label_logo.setPixmap(QPixmap('/home/pi/Desktop/demo/logo_klein.png'))
 
         # create and setup ipcon
         self.ipcon = IPConnection()
@@ -127,8 +128,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             painter = QPainter(self.label_image)
             
             painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
-            #painter = QPainter(self)
-            #painter.drawImage(event.rect(), self.image.scaledToWidth(self.width*self.image_pixel_width, Qt.SmoothTransformation))
             
             w = self.label_image.size().width()
             h = self.label_image.size().height()
@@ -181,51 +180,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.ipcon.get_connection_state() != IPConnection.CONNECTION_STATE_CONNECTED:
             # ignore enumerate callbacks that arrived after the connection got closed
             return
-
-        """if enumeration_type in [IPConnection.ENUMERATION_TYPE_AVAILABLE,
-                                IPConnection.ENUMERATION_TYPE_CONNECTED]:
-            self.devices[uid] = (connected_uid, device_identifier)
-
-            def add_item(combo, no_device_text):
-                if combo.itemText(0) == no_device_text:
-                    combo.clear()
-
-                if combo.findData(uid) < 0:
-                    if conn0,6ected_uid != '0':
-                        if connected_uid in self.devices and self.devices[connected_uid][1] in DEVICE_IDENTIFIERS:
-                            connected_name = DEVICE_IDENTIFIERS[self.devices[connected_uid][1]]
-                        else:
-                            connected_name = 'Unknown Brick'
-
-                        text = '{0} @ {1} [{2}]'.format(uid, connected_name, connected_uid)
-                    else:
-                        text = uid
-
-                    combo.addItem(text, uid)
-
-            if device_identifier == BrickStepper.DEVICE_IDENTIFIER:
-                add_item(self.combo_stepper_uid, NO_STEPPER_BRICK_FOUND)
-            elif device_identifier == BrickletIO4.DEVICE_IDENTIFIER:
-                add_item(self.combo_io4_uid, NO_IO4_BRICKLET_FOUND)
-
-            if str(device_identifier).startswith('1'):
-                def update_items(combo, expected_device_identifier):
-                    for other_uid in self.devices:
-                        other_connected_uid, other_device_identifier = self.devices[other_uid]
-
-                        if other_device_identifier != expected_device_identifier:
-                            continue
-
-                        if other_connected_uid == uid and device_identifier in DEVICE_IDENTIFIERS:
-                            connected_name = DEVICE_IDENTIFIERS[device_identifier]
-                            text = '{0} @ {1} [{2}]'.format(other_uid, connected_name, uid)
-                            index = combo.findData(other_uid)
-
-                            if index >= 0:
-                                combo.setItemText(index, text)
-
-                update_items(self.combo_stepper_uid, BrickStepper.DEVICE_IDENTIFIER)
-                update_items(self.combo_io4_uid, BrickletIO4.DEVICE_IDENTIFIER)"""
 
     def cb_ipcon_connected(self, connect_reason):
         try:
@@ -329,6 +283,7 @@ def main():
 
     main_window = MainWindow()
 
+    #Show as fullscreen
     if '-fullscreen' in sys.argv:
         main_window.showFullScreen()
     else:
