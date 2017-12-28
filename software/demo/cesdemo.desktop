@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=cesdemo
+Exec=lxterminal -e bash /home/pi/Desktop/demo/start.sh
+StartupNotify=true
+Terminal=true
+Icon=utilities-terminal
+
