@@ -11,9 +11,7 @@
 
 // Callback function for high contrast image callback
 void cb_high_contrast_image(uint8_t *image, uint16_t image_length, void *user_data) {
-	(void)image; // avoid unused parameter warning
-	(void)image_length; // avoid unused parameter warning
-	(void)user_data; // avoid unused parameter warning
+	(void)image; (void)image_length; (void)user_data; // avoid unused parameter warning
 
 
 }
