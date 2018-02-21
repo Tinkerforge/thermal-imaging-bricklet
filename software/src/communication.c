@@ -61,10 +61,6 @@ BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighC
 		length = LEPTON_IMAGE_BUFFER_SIZE - lepton.image_buffer_stream_index;
 	}
 
-	if(length == 0) {
-		return HANDLE_MESSAGE_RESPONSE_EMPTY;
-	}
-
 	response->stream_chunk_offset = lepton.image_buffer_stream_index;
 
 	if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
@@ -114,10 +110,6 @@ BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTempera
 	uint8_t length = 31;
 	if(lepton.image_buffer_stream_index + 31 > LEPTON_IMAGE_BUFFER_SIZE) {
 		length = LEPTON_IMAGE_BUFFER_SIZE - lepton.image_buffer_stream_index;
-	}
-
-	if(length == 0) {
-		return HANDLE_MESSAGE_RESPONSE_EMPTY;
 	}
 
 	response->stream_chunk_offset = lepton.image_buffer_stream_index;
