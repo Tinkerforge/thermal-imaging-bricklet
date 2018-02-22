@@ -15,7 +15,7 @@ type
     ti: TBrickletThermalImaging;
   public
     procedure HighContrastImageCB(sender: TBrickletThermalImaging;
-                                  const image: array of byte);
+                                  const image: TArrayOfUInt8);
     procedure Execute;
   end;
 
@@ -29,7 +29,7 @@ var
 
 { Callback procedure for high contrast image callback }
 procedure TExample.HighContrastImageCB(sender: TBrickletThermalImaging;
-                                       const image: array of byte);
+                                       const image: TArrayOfUInt8);
 begin
 
 end;
