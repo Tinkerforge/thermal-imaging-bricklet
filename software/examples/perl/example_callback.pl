@@ -1,7 +1,5 @@
 #!/usr/bin/perl
 
-# FIXME: This example is incomplete
-
 use Tinkerforge::IPConnection;
 use Tinkerforge::BrickletThermalImaging;
 
@@ -14,7 +12,7 @@ sub cb_high_contrast_image
 {
     my ($image) = @_;
 
-
+    # image is a array of size 80*60 with 8 bit grey value for each element
 }
 
 my $ipcon = Tinkerforge::IPConnection->new(); # Create IP connection

@@ -2,8 +2,6 @@ function matlab_example_callback()
     import com.tinkerforge.IPConnection;
     import com.tinkerforge.BrickletThermalImaging;
 
-    % FIXME: This example is incomplete
-
     HOST = 'localhost';
     PORT = 4223;
     UID = 'XYZ'; % Change XYZ to the UID of your Thermal Imaging Bricklet
@@ -26,5 +24,5 @@ end
 
 % Callback function for high contrast image callback
 function cb_high_contrast_image(e)
-
+    % e.image is a array of size 80*60 with 8 bit grey value for each element
 end

@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 
-<!-- FIXME: This example is incomplete -->
-
 <html>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <head>
@@ -53,8 +51,7 @@
                 ti.on(Tinkerforge.BrickletThermalImaging.CALLBACK_HIGH_CONTRAST_IMAGE,
                     // Callback function for high contrast image callback
                     function (image) {
-
-                        textArea.scrollTop = textArea.scrollHeight;
+                        // image is a array of size 80*60 with 8 bit grey value for each element
                     }
                 );
             }

@@ -1,7 +1,5 @@
 program ExampleCallback;
 
-{ FIXME: This example is incomplete }
-
 {$ifdef MSWINDOWS}{$apptype CONSOLE}{$endif}
 {$ifdef FPC}{$mode OBJFPC}{$H+}{$endif}
 
@@ -31,7 +29,7 @@ var
 procedure TExample.HighContrastImageCB(sender: TBrickletThermalImaging;
                                        const image: TArrayOfUInt8);
 begin
-
+  { image is a array of size 80*60 with 8 bit grey value for each element }
 end;
 
 procedure TExample.Execute;

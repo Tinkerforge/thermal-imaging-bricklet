@@ -1,7 +1,5 @@
 var Tinkerforge = require('tinkerforge');
 
-// FIXME: This example is incomplete
-
 var HOST = 'localhost';
 var PORT = 4223;
 var UID = 'XYZ'; // Change XYZ to the UID of your Thermal Imaging Bricklet
@@ -27,7 +25,7 @@ ipcon.on(Tinkerforge.IPConnection.CALLBACK_CONNECTED,
 ti.on(Tinkerforge.BrickletThermalImaging.CALLBACK_HIGH_CONTRAST_IMAGE,
     // Callback function for high contrast image callback
     function (image) {
-
+        // image is a array of size 80*60 with 8 bit grey value for each element
     }
 );
 

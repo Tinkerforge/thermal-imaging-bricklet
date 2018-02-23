@@ -1,8 +1,6 @@
 Imports System
 Imports Tinkerforge
 
-' FIXME: This example is incomplete
-
 Module ExampleCallback
     Const HOST As String = "localhost"
     Const PORT As Integer = 4223
@@ -11,7 +9,7 @@ Module ExampleCallback
     ' Callback subroutine for high contrast image callback
     Sub HighContrastImageCB(ByVal sender As BrickletThermalImaging, _
                             ByVal image As Byte())
-
+        ' image is a array of size 80*60 with 8 bit grey value for each element
     End Sub
 
     Sub Main()

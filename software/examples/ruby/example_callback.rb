@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 # -*- ruby encoding: utf-8 -*-
 
-# FIXME: This example is incomplete
-
 require 'tinkerforge/ip_connection'
 require 'tinkerforge/bricklet_thermal_imaging'
 
@@ -20,7 +18,7 @@ ipcon.connect HOST, PORT # Connect to brickd
 
 # Register high contrast image callback
 ti.register_callback(BrickletThermalImaging::CALLBACK_HIGH_CONTRAST_IMAGE) do |image|
-
+    # image is a array of size 80*60 with 8 bit grey value for each element
 end
 
 # Enable high contrast image transfer for callback
