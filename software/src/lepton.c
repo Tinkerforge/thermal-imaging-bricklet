@@ -874,7 +874,16 @@ void lepton_handle_configuration(Lepton *lepton) {
 					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
 				}
 				uint32_t resolution = lepton->resolution;
+				uint32_t gain_mode = 0; // 0 = high gain
+				if(resolution == 0) { // res 0 = 0-6553 kelvin
+					gain_mode = 1; // 1 = low gain (for hotter scenes)
+				}
 				lepton_attribute_write(lepton, LEPTON_CID_RAD_TLINEAR_RESOLUTION, 2, (uint16_t*)&resolution);
+				rad_status = 1;
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				lepton_attribute_write(lepton, LEPTON_CID_SYS_GAIN_MODE, 2, (uint16_t*)&gain_mode);
 				while(rad_status != 0) {
 					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
 				}

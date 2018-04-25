@@ -105,6 +105,7 @@
 #define LEPTON_CID_SYS_FFC_SHUTTER_MODE            (uint16_t)(LEPTON_SYS_MODULE_BASE + 0x003C)
 #define LEPTON_CID_SYS_RUN_FFC                     (uint16_t)(LEPTON_SYS_MODULE_BASE + 0x0042)
 #define LEPTON_CID_SYS_FFC_STATUS                  (uint16_t)(LEPTON_SYS_MODULE_BASE + 0x0044)
+#define LEPTON_CID_SYS_GAIN_MODE                   (uint16_t)(LEPTON_SYS_MODULE_BASE + 0x0048)
 
 #define LEPTON_VID_MODULE_BASE                     (uint16_t)0x0300
 #define LEPTON_CID_VID_POLARITY_SELECT             (uint16_t)(LEPTON_VID_MODULE_BASE + 0x0000)
