@@ -4,5 +4,5 @@
 2018-04-25: 2.0.1 (36e2dc8)
 - Fix low gain bug in high range mode
 
-2018-10-04: 2.0.2 (TBD)
+2018-10-04: 2.0.2 (c1e78c9)
 - Fix race condition with potential buffer overflow (through bricklib2)
