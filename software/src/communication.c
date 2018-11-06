@@ -44,11 +44,11 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 	}
 }
 
-BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighContrastImageLowLevel *data, GetHighContrastImageLowLevelResponse *response) {
+BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighContrastImageLowLevel *data, GetHighContrastImageLowLevel_Response *response) {
 	static uint32_t packet_payload_index = 0;
 	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
 
-	response->header.length = sizeof(GetHighContrastImageLowLevelResponse);
+	response->header.length = sizeof(GetHighContrastImageLowLevel_Response);
 
 	if(lepton.stream_callback_config != THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
@@ -95,11 +95,11 @@ BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighC
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
-BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTemperatureImageLowLevel *data, GetTemperatureImageLowLevelResponse *response) {
+BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTemperatureImageLowLevel *data, GetTemperatureImageLowLevel_Response *response) {
 	static uint32_t packet_payload_index = 0;
 	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
 
-	response->header.length = sizeof(GetTemperatureImageLowLevelResponse);
+	response->header.length = sizeof(GetTemperatureImageLowLevel_Response);
 
 	if(lepton.stream_callback_config != THERMAL_IMAGING_DATA_TRANSFER_MANUAL_TEMPERATURE_IMAGE) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
@@ -147,8 +147,8 @@ BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTempera
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
-BootloaderHandleMessageResponse get_statistics(const GetStatistics *data, GetStatisticsResponse *response) {
-	response->header.length           = sizeof(GetStatisticsResponse);
+BootloaderHandleMessageResponse get_statistics(const GetStatistics *data, GetStatistics_Response *response) {
+	response->header.length           = sizeof(GetStatistics_Response);
 	response->spotmeter_statistics[0] = lepton.frame.data.telemetry.data.spotmeter_mean;
 	response->spotmeter_statistics[1] = lepton.frame.data.telemetry.data.spotmeter_maximum;
 	response->spotmeter_statistics[2] = lepton.frame.data.telemetry.data.spotmeter_minimum;
@@ -180,8 +180,8 @@ BootloaderHandleMessageResponse set_resolution(const SetResolution *data) {
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
-BootloaderHandleMessageResponse get_resolution(const GetResolution *data, GetResolutionResponse *response) {
-	response->header.length = sizeof(GetResolutionResponse);
+BootloaderHandleMessageResponse get_resolution(const GetResolution *data, GetResolution_Response *response) {
+	response->header.length = sizeof(GetResolution_Response);
 	response->resolution    = lepton.resolution;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
@@ -209,8 +209,8 @@ BootloaderHandleMessageResponse set_spotmeter_config(const SetSpotmeterConfig *d
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
-BootloaderHandleMessageResponse get_spotmeter_config(const GetSpotmeterConfig *data, GetSpotmeterConfigResponse *response) {
-	response->header.length = sizeof(GetSpotmeterConfigResponse);
+BootloaderHandleMessageResponse get_spotmeter_config(const GetSpotmeterConfig *data, GetSpotmeterConfig_Response *response) {
+	response->header.length = sizeof(GetSpotmeterConfig_Response);
 	response->region_of_interest[0] = lepton.spotmeter_roi[0];
 	response->region_of_interest[1] = lepton.spotmeter_roi[1];
 	response->region_of_interest[2] = lepton.spotmeter_roi[2];
@@ -262,8 +262,8 @@ BootloaderHandleMessageResponse set_high_contrast_config(const SetHighContrastCo
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
-BootloaderHandleMessageResponse get_high_contrast_config(const GetHighContrastConfig *data, GetHighContrastConfigResponse *response) {
-	response->header.length = sizeof(GetHighContrastConfigResponse);
+BootloaderHandleMessageResponse get_high_contrast_config(const GetHighContrastConfig *data, GetHighContrastConfig_Response *response) {
+	response->header.length = sizeof(GetHighContrastConfig_Response);
 	memcpy(response->region_of_interest, &lepton.agc, sizeof(LeptonAutomaticGainControl));
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
@@ -282,8 +282,8 @@ BootloaderHandleMessageResponse set_image_transfer_config(const SetImageTransfer
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
-BootloaderHandleMessageResponse get_image_transfer_config(const GetImageTransferConfig *data, GetImageTransferConfigResponse *response) {
-	response->header.length = sizeof(GetImageTransferConfigResponse);
+BootloaderHandleMessageResponse get_image_transfer_config(const GetImageTransferConfig *data, GetImageTransferConfig_Response *response) {
+	response->header.length = sizeof(GetImageTransferConfig_Response);
 	response->config        = lepton.current_callback_config;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
@@ -293,7 +293,7 @@ BootloaderHandleMessageResponse get_image_transfer_config(const GetImageTransfer
 
 bool handle_high_contrast_image_low_level_callback(void) {
 	static bool is_buffered = false;
-	static HighContrastImageLowLevelCallback cb;
+	static HighContrastImageLowLevel_Callback cb;
 	static uint32_t packet_payload_index = 0;
 	static LeptonPacket *lepton_packet = lepton.frame.data.packets;
 
@@ -311,7 +311,7 @@ bool handle_high_contrast_image_low_level_callback(void) {
 			return false;
 		}
 
-		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(HighContrastImageLowLevelCallback), FID_CALLBACK_HIGH_CONTRAST_IMAGE_LOW_LEVEL);
+		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(HighContrastImageLowLevel_Callback), FID_CALLBACK_HIGH_CONTRAST_IMAGE_LOW_LEVEL);
 		cb.stream_chunk_offset = lepton.image_buffer_stream_index;
 
 		if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
@@ -345,7 +345,7 @@ bool handle_high_contrast_image_low_level_callback(void) {
 	}
 
 	if(bootloader_spitfp_is_send_possible(&bootloader_status.st)) {
-		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(HighContrastImageLowLevelCallback));
+		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(HighContrastImageLowLevel_Callback));
 		is_buffered = false;
 		return true;
 	} else {
@@ -356,7 +356,7 @@ bool handle_high_contrast_image_low_level_callback(void) {
 
 bool handle_temperature_image_low_level_callback(void) {
 	static bool is_buffered = false;
-	static TemperatureImageLowLevelCallback cb;
+	static TemperatureImageLowLevel_Callback cb;
 	static uint32_t packet_payload_index = 0;
 	static LeptonPacket *lepton_packet = lepton.frame.data.packets;
 
@@ -374,7 +374,7 @@ bool handle_temperature_image_low_level_callback(void) {
 			return false;
 		}
 
-		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(TemperatureImageLowLevelCallback), FID_CALLBACK_TEMPERATURE_IMAGE_LOW_LEVEL);
+		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(TemperatureImageLowLevel_Callback), FID_CALLBACK_TEMPERATURE_IMAGE_LOW_LEVEL);
 		cb.stream_chunk_offset = lepton.image_buffer_stream_index;
 
 		if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
@@ -408,7 +408,7 @@ bool handle_temperature_image_low_level_callback(void) {
 	}
 
 	if(bootloader_spitfp_is_send_possible(&bootloader_status.st)) {
-		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(TemperatureImageLowLevelCallback));
+		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(TemperatureImageLowLevel_Callback));
 		is_buffered = false;
 		return true;
 	} else {

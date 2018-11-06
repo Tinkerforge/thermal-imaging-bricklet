@@ -65,7 +65,7 @@ typedef struct {
 	TFPMessageHeader header;
 	uint16_t stream_chunk_offset;
 	uint8_t stream_chunk_data[62];
-} __attribute__((__packed__)) GetHighContrastImageLowLevelResponse;
+} __attribute__((__packed__)) GetHighContrastImageLowLevel_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -75,7 +75,7 @@ typedef struct {
 	TFPMessageHeader header;
 	uint16_t stream_chunk_offset;
 	uint16_t stream_chunk_data[31];
-} __attribute__((__packed__)) GetTemperatureImageLowLevelResponse;
+} __attribute__((__packed__)) GetTemperatureImageLowLevel_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -88,7 +88,7 @@ typedef struct {
 	uint8_t  resolution;
 	uint8_t  ffc_status;
 	uint8_t  temperature_warning;
-} __attribute__((__packed__)) GetStatisticsResponse;
+} __attribute__((__packed__)) GetStatistics_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -102,7 +102,7 @@ typedef struct {
 typedef struct {
 	TFPMessageHeader header;
 	uint8_t resolution;
-} __attribute__((__packed__)) GetResolutionResponse;
+} __attribute__((__packed__)) GetResolution_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -116,7 +116,7 @@ typedef struct {
 typedef struct {
 	TFPMessageHeader header;
 	uint8_t region_of_interest[4];
-} __attribute__((__packed__)) GetSpotmeterConfigResponse;
+} __attribute__((__packed__)) GetSpotmeterConfig_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -136,7 +136,7 @@ typedef struct {
 	uint16_t dampening_factor;
 	uint16_t clip_limit[2];
 	uint16_t empty_counts;
-} __attribute__((__packed__)) GetHighContrastConfigResponse;
+} __attribute__((__packed__)) GetHighContrastConfig_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -150,33 +150,33 @@ typedef struct {
 typedef struct {
 	TFPMessageHeader header;
 	uint8_t config;
-} __attribute__((__packed__)) GetImageTransferConfigResponse;
+} __attribute__((__packed__)) GetImageTransferConfig_Response;
 
 typedef struct {
 	TFPMessageHeader header;
 	uint16_t stream_chunk_offset;
 	uint8_t stream_chunk_data[62];
-} __attribute__((__packed__)) HighContrastImageLowLevelCallback;
+} __attribute__((__packed__)) HighContrastImageLowLevel_Callback;
 
 typedef struct {
 	TFPMessageHeader header;
 	uint16_t stream_chunk_offset;
 	uint16_t stream_chunk_data[31];
-} __attribute__((__packed__)) TemperatureImageLowLevelCallback;
+} __attribute__((__packed__)) TemperatureImageLowLevel_Callback;
 
 
 // Function prototypes
-BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighContrastImageLowLevel *data, GetHighContrastImageLowLevelResponse *response);
-BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTemperatureImageLowLevel *data, GetTemperatureImageLowLevelResponse *response);
-BootloaderHandleMessageResponse get_statistics(const GetStatistics *data, GetStatisticsResponse *response);
+BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighContrastImageLowLevel *data, GetHighContrastImageLowLevel_Response *response);
+BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTemperatureImageLowLevel *data, GetTemperatureImageLowLevel_Response *response);
+BootloaderHandleMessageResponse get_statistics(const GetStatistics *data, GetStatistics_Response *response);
 BootloaderHandleMessageResponse set_resolution(const SetResolution *data);
-BootloaderHandleMessageResponse get_resolution(const GetResolution *data, GetResolutionResponse *response);
+BootloaderHandleMessageResponse get_resolution(const GetResolution *data, GetResolution_Response *response);
 BootloaderHandleMessageResponse set_spotmeter_config(const SetSpotmeterConfig *data);
-BootloaderHandleMessageResponse get_spotmeter_config(const GetSpotmeterConfig *data, GetSpotmeterConfigResponse *response);
+BootloaderHandleMessageResponse get_spotmeter_config(const GetSpotmeterConfig *data, GetSpotmeterConfig_Response *response);
 BootloaderHandleMessageResponse set_high_contrast_config(const SetHighContrastConfig *data);
-BootloaderHandleMessageResponse get_high_contrast_config(const GetHighContrastConfig *data, GetHighContrastConfigResponse *response);
+BootloaderHandleMessageResponse get_high_contrast_config(const GetHighContrastConfig *data, GetHighContrastConfig_Response *response);
 BootloaderHandleMessageResponse set_image_transfer_config(const SetImageTransferConfig *data);
-BootloaderHandleMessageResponse get_image_transfer_config(const GetImageTransferConfig *data, GetImageTransferConfigResponse *response);
+BootloaderHandleMessageResponse get_image_transfer_config(const GetImageTransferConfig *data, GetImageTransferConfig_Response *response);
 
 // Callbacks
 bool handle_high_contrast_image_low_level_callback(void);
