@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"tinkerforge/ipconnection"
-    "tinkerforge/thermal_imaging_bricklet"
+	"github.com/tinkerforge/go-api-bindings/ipconnection"
+    "github.com/tinkerforge/go-api-bindings/thermal_imaging_bricklet"
 )
 
 const ADDR string = "localhost:4223"
