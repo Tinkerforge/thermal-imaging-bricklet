@@ -29,9 +29,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     });
 
     // Enable high contrast image transfer for callback
-    ti.set_image_transfer_config(
-        THERMAL_IMAGING_BRICKLET_IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE,
-    );
+    ti.set_image_transfer_config(THERMAL_IMAGING_BRICKLET_IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE);
 
     println!("Press enter to exit.");
     let mut _input = String::new();
