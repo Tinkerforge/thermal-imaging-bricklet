@@ -1,0 +1,11 @@
+# Change XYZ to the UID of your Thermal Imaging Bricklet
+
+setup:
+	# Handle incoming high contrast image callbacks
+	subscribe to tinkerforge/callback/thermal_imaging_bricklet/XYZ/high_contrast_image
+	
+	# Register high_constrast callback
+	publish '{"register": true}' to tinkerforge/register/thermal_imaging_bricklet/XYZ/high_contrast_image
+	
+	# Enable high contrast image transfer for callback
+	publish '{"config": "callback_high_contrast_image"}' to tinkerforge/request/thermal_imaging_bricklet/XYZ/set_image_transfer_config 
