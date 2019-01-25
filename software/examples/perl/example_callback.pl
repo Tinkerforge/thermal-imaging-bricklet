@@ -13,7 +13,7 @@ sub cb_high_contrast_image
 {
     my ($image) = @_;
 
-    # image is a array of size 80*60 with 8 bit grey value for each element
+    # image is an array of size 80*60 with a 8 bit grey value for each element
 }
 
 my $ipcon = Tinkerforge::IPConnection->new(); # Create IP connection

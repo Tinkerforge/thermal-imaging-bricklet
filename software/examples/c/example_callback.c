@@ -11,7 +11,7 @@
 void cb_high_contrast_image(uint8_t *image, uint16_t image_length, void *user_data) {
 	(void)image; (void)image_length; (void)user_data; // avoid unused parameter warning
 
-	// image is a array of size 80*60 with 8 bit grey value for each element
+	// image is an array of size 80*60 with a 8 bit grey value for each element
 }
 
 int main(void) {

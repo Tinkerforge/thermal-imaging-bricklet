@@ -9,7 +9,7 @@ Module ExampleCallback
     ' Callback subroutine for high contrast image callback
     Sub HighContrastImageCB(ByVal sender As BrickletThermalImaging, _
                             ByVal image As Byte())
-        ' image is a array of size 80*60 with 8 bit grey value for each element
+        ' image is an array of size 80*60 with a 8 bit grey value for each element
     End Sub
 
     Sub Main()

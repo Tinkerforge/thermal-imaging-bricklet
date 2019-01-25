@@ -20,7 +20,7 @@ public class ExampleCallback {
 		// Add high contrast image listener
 		ti.addHighContrastImageListener(new BrickletThermalImaging.HighContrastImageListener() {
 			public void highContrastImage(int[] image) {
-				// image is a array of size 80*60 with 8 bit grey value for each element
+				// image is an array of size 80*60 with a 8 bit grey value for each element
 			}
 		});
 

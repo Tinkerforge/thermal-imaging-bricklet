@@ -10,7 +10,7 @@ from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
 
 # Callback function for high contrast image callback
 def cb_high_contrast_image(image):
-    # image is a tuple of size 80*60 with 8 bit grey value for each element
+    # image is an tuple of size 80*60 with a 8 bit grey value for each element
     pass
 
 if __name__ == "__main__":

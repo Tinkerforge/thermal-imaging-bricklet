@@ -23,5 +23,5 @@ end
 
 % Callback function for high contrast image callback
 function cb_high_contrast_image(e)
-    % e.image is a array of size 80*60 with 8 bit grey value for each element
+    % e.image is an array of size 80*60 with a 8 bit grey value for each element
 end

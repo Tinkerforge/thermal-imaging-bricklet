@@ -10,7 +10,7 @@ class Example
 	// Callback function for high contrast image callback
 	static void HighContrastImageCB(BrickletThermalImaging sender, byte[] image)
 	{
-		// image is a array of size 80*60 with 8 bit grey value for each element
+		// image is an array of size 80*60 with a 8 bit grey value for each element
 	}
 
 	static void Main()

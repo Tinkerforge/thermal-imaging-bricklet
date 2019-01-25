@@ -29,7 +29,7 @@ var
 procedure TExample.HighContrastImageCB(sender: TBrickletThermalImaging;
                                        const image: TArrayOfUInt8);
 begin
-  { image is a array of size 80*60 with 8 bit grey value for each element }
+  { image is an array of size 80*60 with a 8 bit grey value for each element }
 end;
 
 procedure TExample.Execute;

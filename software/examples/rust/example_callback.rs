@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         for high_contrast_image in high_contrast_image_receiver {
             match high_contrast_image {
                 Some((_payload, _result)) => {
-                    // _payload is a array of size 80*60 with 8 bit grey value for each element
+                    // _payload is an array of size 80*60 with a 8 bit grey value for each element
 
                 }
                 None => println!("Stream was out of sync."),
