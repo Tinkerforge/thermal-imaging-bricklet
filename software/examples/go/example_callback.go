@@ -20,7 +20,7 @@ func main() {
 	// Don't use device before ipcon is connected.
 
 	ti.RegisterHighContrastImageCallback(func(image []uint8) {
-		// Image is a slice of size 80*60 with a 8 bit grey value for each element.
+		// Image is a slice of size 80*60 with an 8 bit grey value for each element.
 	})
 
 	// Enable high contrast image transfer for callback
