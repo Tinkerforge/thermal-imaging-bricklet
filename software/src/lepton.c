@@ -265,9 +265,7 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) le
 				LEPTON_SET_SPI_LIMIT(11);
 			}
 		} else {
-			if(lepton_check_crc_of_first_packet(&lepton)) {
-				lepton.state = LEPTON_STATE_WRITE_FRAME;
-			}
+			lepton.state = LEPTON_STATE_CHECK_CRC;
 			lepton.config_handle_now = true;
 			XMC_GPIO_SetOutputHigh(LEPTON_SELECT_PIN);
 		}
@@ -895,7 +893,13 @@ void lepton_handle_configuration(Lepton *lepton) {
 	}
 }
 
-
+void lepton_handle_crc(Lepton *lepton) {
+	if(lepton_check_crc_of_first_packet(lepton)) {
+		lepton->state = LEPTON_STATE_WRITE_FRAME;
+	} else {
+		lepton->state = LEPTON_STATE_READ_FRAME;
+	}
+}
 
 void lepton_tick(Lepton *lepton) {
 	switch(lepton->state) {
@@ -904,6 +908,7 @@ void lepton_tick(Lepton *lepton) {
 		case LEPTON_STATE_SYNC:  lepton_handle_sync(lepton); break;
 		case LEPTON_STATE_READ_FRAME:
 		case LEPTON_STATE_WRITE_FRAME: lepton_handle_configuration(lepton); break;
+		case LEPTON_STATE_CHECK_CRC: lepton_handle_crc(lepton); break;
 	}
 }
 
