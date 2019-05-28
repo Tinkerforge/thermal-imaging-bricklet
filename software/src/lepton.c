@@ -63,7 +63,7 @@ uint16_t *lepton_packet_pointer = lepton.packet.buffer;
 } while(0)
 
 #define LEPTON_SPI_WRITE_1() do {\
-	LEPTON_SPI->IN[0] = 0;\
+	LEPTON_SPI_IN_PTR[0] = 0;\
 } while(0)
 
 
@@ -108,7 +108,7 @@ uint16_t *lepton_packet_pointer = lepton.packet.buffer;
 } while(0)
 
 #define LEPTON_SPI_READ_1() do {\
-	*lepton_frame_pointer++ = LEPTON_SPI->OUTR;\
+	*lepton_frame_pointer++ = *LEPTON_SPI_OUTR_PTR;\
 } while(0)
 
 #define LEPTON_SPI_READ_2() do {\
@@ -152,7 +152,7 @@ uint16_t *lepton_packet_pointer = lepton.packet.buffer;
 } while(0)
 
 #define LEPTON_SPI_REMOVE_1() do {\
-	LEPTON_SPI->OUTR;\
+	*LEPTON_SPI_OUTR_PTR;\
 	lepton_frame_pointer_dummy++;\
 } while(0)
 
@@ -208,9 +208,13 @@ void __attribute__((optimize("-O3"))) lepton_sync_handler(void) {
 		return;
 	}
 
+	// Use local pointer to save the time for accessing the struct
+	volatile const uint32_t *LEPTON_SPI_OUTR_PTR = &LEPTON_SPI->OUTR;
+	volatile uint32_t       *LEPTON_SPI_IN_PTR   =  LEPTON_SPI->IN;
+
 	// Make sure SPI FIFO is flushed
 	for(uint8_t i = 0; i < 32; i++) {
-		LEPTON_SPI->OUTR;
+		*LEPTON_SPI_OUTR_PTR;
 	}
 
 	if(lepton.state == LEPTON_STATE_READ_FRAME) {
@@ -232,6 +236,10 @@ void __attribute__((optimize("-O3"))) lepton_sync_handler(void) {
 }
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) lepton_rx_read_irq_handler(void) {
+	// Use local pointer to save the time for accessing the struct
+	volatile const uint32_t *LEPTON_SPI_OUTR_PTR = &LEPTON_SPI->OUTR;
+	volatile uint32_t       *LEPTON_SPI_IN_PTR   =  LEPTON_SPI->IN;
+
 	if(lepton_irq_state == LEPTON_IRQ_STATE_SYNC) {
 		LEPTON_SPI_READ_2();
 		if(lepton_frame_pointer != lepton_frame_end_of_first_packet) {
@@ -273,6 +281,10 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) le
 }
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) lepton_rx_remove_irq_handler(void) {
+	// Use local pointer to save the time for accessing the struct
+	volatile const uint32_t *LEPTON_SPI_OUTR_PTR = &LEPTON_SPI->OUTR;
+	volatile uint32_t       *LEPTON_SPI_IN_PTR   =  LEPTON_SPI->IN;
+
 	if(lepton_irq_state == LEPTON_IRQ_STATE_SYNC) {
 		LEPTON_SPI_REMOVE_2();
 		if(lepton_frame_pointer_dummy != lepton_frame_end_of_first_packet) {
