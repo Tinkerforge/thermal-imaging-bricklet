@@ -1,7 +1,7 @@
 /* thermal-imaging-bricklet
- * Copyright (C) 2017 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2019 Olaf Lüke <olaf@tinkerforge.com>
  *
- * main.c: Initialization for Thermal Imaging Bricklet
+ * config_logging.h: Logging configuration for Thermal Imaging Bricklet
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,29 +19,17 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <stdio.h>
-#include <stdbool.h>
+#ifndef CONFIG_LOGGING_H
+#define CONFIG_LOGGING_H
 
-#include "configs/config.h"
+//#define LOGGING_UARTBB
+//#define LOGGING_LEVEL LOGGING_DEBUG
+#define LOGGING_LEVEL LOGGING_NONE
 
-#include "bricklib2/bootloader/bootloader.h"
-#include "bricklib2/hal/system_timer/system_timer.h"
-#include "bricklib2/logging/logging.h"
-#include "bricklib2/utility/communication_callback.h"
-#include "communication.h"
-#include "lepton.h"
+#define LOGGING_USE_BASENAME
+#define LOGGING_HAVE_SYSTEM_TIME
+#define LOGGING_TIMESTAMP_FORMAT "%u "
+#define LOGGING_SYSTEM_TIME_HEADER "bricklib2/hal/system_timer/system_timer.h"
+#define LOGGING_SYSTEM_TIME_FUNCTION system_timer_get_ms
 
-Lepton lepton;
-
-int main(void) {
-	logging_init();
-	logd("Start Thermal Imaging Bricklet 2.0\n\r");
-
-	lepton_init(&lepton);
-
-	while(true) {
-		bootloader_tick();
-		communication_tick();
-		lepton_tick(&lepton);
-	}
-}
+#endif
