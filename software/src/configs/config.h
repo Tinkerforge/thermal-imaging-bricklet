@@ -33,7 +33,7 @@
 
 #define FIRMWARE_VERSION_MAJOR 2
 #define FIRMWARE_VERSION_MINOR 0
-#define FIRMWARE_VERSION_REVISION 2
+#define FIRMWARE_VERSION_REVISION 3
 
 #include "config_custom_bootloader.h"
 
