@@ -382,6 +382,14 @@ typedef enum {
 } LeptonState;
 
 typedef struct {
+	uint16_t spotmeter_statistics[4];
+	uint16_t temperatures[4];
+	uint8_t  resolution;
+	uint8_t  ffc_status;
+	uint8_t  temperature_warning;
+} __attribute__((__packed__)) LeptonStatistics;
+
+typedef struct {
 	uint8_t region_of_interest[4];
 	uint16_t dampening_factor;
 	uint16_t clip_limit[2];
@@ -512,6 +520,8 @@ typedef struct {
 	uint8_t spotmeter_roi[4];
 	uint8_t resolution;
 	bool manual_transfer_ongoing;
+
+    LeptonStatistics statistics;
 } Lepton;
 
 void lepton_init(Lepton *lepton);

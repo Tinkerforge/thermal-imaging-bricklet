@@ -148,22 +148,10 @@ BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTempera
 }
 
 BootloaderHandleMessageResponse get_statistics(const GetStatistics *data, GetStatistics_Response *response) {
-	response->header.length           = sizeof(GetStatistics_Response);
-	response->spotmeter_statistics[0] = lepton.frame.data.telemetry.data.spotmeter_mean;
-	response->spotmeter_statistics[1] = lepton.frame.data.telemetry.data.spotmeter_maximum;
-	response->spotmeter_statistics[2] = lepton.frame.data.telemetry.data.spotmeter_minimum;
-	response->spotmeter_statistics[3] = lepton.frame.data.telemetry.data.spotmeter_population;
+	response->header.length = sizeof(GetStatistics_Response);
 
-	response->temperatures[0]         = lepton.frame.data.telemetry.data.fpa_temperature_kelvin;
-	response->temperatures[1]         = lepton.frame.data.telemetry.data.fpa_temperature_at_last_ffc_kelvin;
-	response->temperatures[2]         = lepton.frame.data.telemetry.data.housing_temperature_kelvin;
-	response->temperatures[3]         = lepton.frame.data.telemetry.data.housing_temperature_at_last_ffc;
-
-	response->resolution              = lepton.frame.data.telemetry.data.tlinear_resolution;
-
-	const uint32_t status             = lepton.frame.data.telemetry.data.status;
-	response->ffc_status              = (status >> 4) & 0b11;
-	response->temperature_warning     = (((status >> 15) & 1) << 0) | (((status >> 20) & 1) << 1);
+	// Use double buffered statistics, they are already stored and packed in correct format for this getter
+	memcpy(response->spotmeter_statistics, &lepton.statistics, sizeof(LeptonStatistics));
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

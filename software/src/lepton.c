@@ -905,8 +905,29 @@ void lepton_handle_configuration(Lepton *lepton) {
 	}
 }
 
+void lepton_new_statistics(Lepton *lepton) {
+	// Double buffer staticists, so there can't be any tearing
+	// in the statistics data.
+	lepton->statistics.spotmeter_statistics[0] = lepton->frame.data.telemetry.data.spotmeter_mean;
+	lepton->statistics.spotmeter_statistics[1] = lepton->frame.data.telemetry.data.spotmeter_maximum;
+	lepton->statistics.spotmeter_statistics[2] = lepton->frame.data.telemetry.data.spotmeter_minimum;
+	lepton->statistics.spotmeter_statistics[3] = lepton->frame.data.telemetry.data.spotmeter_population;
+
+	lepton->statistics.temperatures[0]         = lepton->frame.data.telemetry.data.fpa_temperature_kelvin;
+	lepton->statistics.temperatures[1]         = lepton->frame.data.telemetry.data.fpa_temperature_at_last_ffc_kelvin;
+	lepton->statistics.temperatures[2]         = lepton->frame.data.telemetry.data.housing_temperature_kelvin;
+	lepton->statistics.temperatures[3]         = lepton->frame.data.telemetry.data.housing_temperature_at_last_ffc;
+
+	lepton->statistics.resolution              = lepton->frame.data.telemetry.data.tlinear_resolution;
+
+	const uint32_t status                      = lepton->frame.data.telemetry.data.status;
+	lepton->statistics.ffc_status              = (status >> 4) & 0b11;
+	lepton->statistics.temperature_warning     = (((status >> 15) & 1) << 0) | (((status >> 20) & 1) << 1);
+}
+
 void lepton_handle_crc(Lepton *lepton) {
 	if(lepton_check_crc_of_first_packet(lepton)) {
+		lepton_new_statistics(lepton);
 		lepton->state = LEPTON_STATE_WRITE_FRAME;
 	} else {
 		lepton->state = LEPTON_STATE_READ_FRAME;
