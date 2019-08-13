@@ -9,3 +9,6 @@
 
 2019-05-29: 2.0.3 (9a60cd9)
 - Fix SPITFP IRQ race condition with other higher prio IRQs (through bricklib2)
+
+2019-08-13: 2.0.4 (05d3f12)
+- Double buffer lepton statistics to prevent statistics tearing
