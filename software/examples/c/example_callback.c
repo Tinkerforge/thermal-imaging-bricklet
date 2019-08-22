@@ -33,7 +33,7 @@ int main(void) {
 	// Register high contrast image callback to function cb_high_contrast_image
 	thermal_imaging_register_callback(&ti,
 	                                  THERMAL_IMAGING_CALLBACK_HIGH_CONTRAST_IMAGE,
-	                                  (void *)cb_high_contrast_image,
+	                                  (void (*)(void))cb_high_contrast_image,
 	                                  NULL);
 
 	// Enable high contrast image transfer for callback
