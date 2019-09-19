@@ -12,3 +12,6 @@
 
 2019-08-13: 2.0.4 (05d3f12)
 - Double buffer lepton statistics to prevent statistics tearing
+
+UNKNOWN: 2.0.5 (<unknown>)
+- Fix vertical orientation of images transfered by getter

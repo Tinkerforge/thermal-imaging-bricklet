@@ -46,7 +46,7 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 
 BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighContrastImageLowLevel *data, GetHighContrastImageLowLevel_Response *response) {
 	static uint32_t packet_payload_index = 0;
-	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+	static LeptonPacket *lepton_packet = lepton.frame.data.packets;
 
 	response->header.length = sizeof(GetHighContrastImageLowLevel_Response);
 
@@ -70,7 +70,7 @@ BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighC
 			packet_payload_index++;
 		}
 
-		lepton_packet--;
+		lepton_packet++;
 		packet_payload_index = 0;
 		for(uint8_t i = length_first_packet; i < length; i++) {
 			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
@@ -88,7 +88,7 @@ BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighC
 		lepton.state = LEPTON_STATE_READ_FRAME;
 		lepton.manual_transfer_ongoing =  false;
 		lepton.image_buffer_stream_index = 0;
-		lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+		lepton_packet = lepton.frame.data.packets;
 		packet_payload_index = 0;
 		lepton.stream_callback_config = lepton.current_callback_config;
 	}
@@ -97,7 +97,7 @@ BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighC
 }
 BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTemperatureImageLowLevel *data, GetTemperatureImageLowLevel_Response *response) {
 	static uint32_t packet_payload_index = 0;
-	static LeptonPacket *lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+	static LeptonPacket *lepton_packet = lepton.frame.data.packets;
 
 	response->header.length = sizeof(GetTemperatureImageLowLevel_Response);
 
@@ -121,7 +121,7 @@ BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTempera
 			packet_payload_index++;
 		}
 
-		lepton_packet--;
+		lepton_packet++;
 		packet_payload_index = 0;
 		for(uint8_t i = length_first_packet; i < length; i++) {
 			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
@@ -139,7 +139,7 @@ BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTempera
 		lepton.state = LEPTON_STATE_READ_FRAME;
 		lepton.manual_transfer_ongoing =  false;
 		lepton.image_buffer_stream_index = 0;
-		lepton_packet = lepton.frame.data.packets + LEPTON_FRAME_ROWS-1;
+		lepton_packet = lepton.frame.data.packets;
 		packet_payload_index = 0;
 		lepton.stream_callback_config = lepton.current_callback_config;
 	}
