@@ -60,5 +60,5 @@ if __name__ == "__main__":
     # Scale to 800x600 and save thermal image!
     image.resize((80*10, 60*10), Image.ANTIALIAS).save('thermal_image.png')
 
-    raw_input("Press key to exit\n") # Use input() in Python 3
+    input("Press key to exit\n") # Use raw_input() in Python 2
     ipcon.disconnect()
