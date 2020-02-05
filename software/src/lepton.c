@@ -929,6 +929,8 @@ void lepton_handle_crc(Lepton *lepton) {
 	if(lepton_check_crc_of_first_packet(lepton)) {
 		lepton_new_statistics(lepton);
 		lepton->state = LEPTON_STATE_WRITE_FRAME;
+	} else if(lepton->manual_transfer_ongoing) {
+		lepton->state = LEPTON_STATE_WRITE_FRAME;
 	} else {
 		lepton->state = LEPTON_STATE_READ_FRAME;
 	}

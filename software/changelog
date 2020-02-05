@@ -15,3 +15,4 @@
 
 UNKNOWN: 2.0.5 (<unknown>)
 - Fix vertical orientation of images transfered by getter
+- Fix tearing issue when images transfered by getter
