@@ -396,6 +396,17 @@ typedef struct {
 	uint16_t empty_counts;
 } __attribute__((__packed__)) LeptonAutomaticGainControl;
 
+typedef struct {
+	uint16_t scene_emissivity;
+	uint16_t temperature_background;
+	uint16_t tau_window;
+	uint16_t temperatur_window;
+	uint16_t tau_atmosphere;
+	uint16_t temperature_atmosphere;
+	uint16_t reflection_window;
+	uint16_t temperature_reflection;
+} __attribute__((__packed__)) LeptonFluxLinearParameters;
+
 typedef union {
 	struct {
 		uint16_t id;
@@ -492,7 +503,8 @@ typedef enum {
 	LEPTON_CONFIG_BITMASK_AGC_CLIP_LIMIT       = 1 << 3,
 	LEPTON_CONFIG_BITMASK_AGC_EMPTY_COUNTS     = 1 << 4,
 	LEPTON_CONFIG_BITMASK_SPOTMETER_ROI        = 1 << 5,
-	LEPTON_CONFIG_BITMASK_RESOLUTION           = 1 << 6
+	LEPTON_CONFIG_BITMASK_RESOLUTION           = 1 << 6,
+	LEPTON_CONFIG_BITMASK_FLUX_PARAMETERS      = 1 << 7
 } LeptonConfigBitmask;
 
 
@@ -520,6 +532,8 @@ typedef struct {
 	uint8_t spotmeter_roi[4];
 	uint8_t resolution;
 	bool manual_transfer_ongoing;
+
+	LeptonFluxLinearParameters flux_linear_parameters;
 
 	LeptonStatistics statistics;
 } Lepton;

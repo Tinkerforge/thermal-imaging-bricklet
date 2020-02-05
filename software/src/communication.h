@@ -53,6 +53,8 @@ void communication_init(void);
 #define FID_GET_HIGH_CONTRAST_CONFIG 9
 #define FID_SET_IMAGE_TRANSFER_CONFIG 10
 #define FID_GET_IMAGE_TRANSFER_CONFIG 11
+#define FID_SET_FLUX_LINEAR_PARAMETERS 14
+#define FID_GET_FLUX_LINEAR_PARAMETERS 15
 
 #define FID_CALLBACK_HIGH_CONTRAST_IMAGE_LOW_LEVEL 12
 #define FID_CALLBACK_TEMPERATURE_IMAGE_LOW_LEVEL 13
@@ -164,6 +166,34 @@ typedef struct {
 	uint16_t stream_chunk_data[31];
 } __attribute__((__packed__)) TemperatureImageLowLevel_Callback;
 
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t scene_emissivity;
+	uint16_t temperature_background;
+	uint16_t tau_window;
+	uint16_t temperatur_window;
+	uint16_t tau_atmosphere;
+	uint16_t temperature_atmosphere;
+	uint16_t reflection_window;
+	uint16_t temperature_reflection;
+} __attribute__((__packed__)) SetFluxLinearParameters;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetFluxLinearParameters;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t scene_emissivity;
+	uint16_t temperature_background;
+	uint16_t tau_window;
+	uint16_t temperatur_window;
+	uint16_t tau_atmosphere;
+	uint16_t temperature_atmosphere;
+	uint16_t reflection_window;
+	uint16_t temperature_reflection;
+} __attribute__((__packed__)) GetFluxLinearParameters_Response;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighContrastImageLowLevel *data, GetHighContrastImageLowLevel_Response *response);
@@ -177,6 +207,8 @@ BootloaderHandleMessageResponse set_high_contrast_config(const SetHighContrastCo
 BootloaderHandleMessageResponse get_high_contrast_config(const GetHighContrastConfig *data, GetHighContrastConfig_Response *response);
 BootloaderHandleMessageResponse set_image_transfer_config(const SetImageTransferConfig *data);
 BootloaderHandleMessageResponse get_image_transfer_config(const GetImageTransferConfig *data, GetImageTransferConfig_Response *response);
+BootloaderHandleMessageResponse set_flux_linear_parameters(const SetFluxLinearParameters *data);
+BootloaderHandleMessageResponse get_flux_linear_parameters(const GetFluxLinearParameters *data, GetFluxLinearParameters_Response *response);
 
 // Callbacks
 bool handle_high_contrast_image_low_level_callback(void);

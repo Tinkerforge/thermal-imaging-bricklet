@@ -40,6 +40,8 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_GET_HIGH_CONTRAST_CONFIG: return get_high_contrast_config(message, response);
 		case FID_SET_IMAGE_TRANSFER_CONFIG: return set_image_transfer_config(message);
 		case FID_GET_IMAGE_TRANSFER_CONFIG: return get_image_transfer_config(message, response);
+		case FID_SET_FLUX_LINEAR_PARAMETERS: return set_flux_linear_parameters(message);
+		case FID_GET_FLUX_LINEAR_PARAMETERS: return get_flux_linear_parameters(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -277,6 +279,50 @@ BootloaderHandleMessageResponse get_image_transfer_config(const GetImageTransfer
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
+BootloaderHandleMessageResponse set_flux_linear_parameters(const SetFluxLinearParameters *data) {
+	if((data->scene_emissivity < 82) || (data->scene_emissivity > 8192)) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	if((data->tau_window < 82) || (data->tau_window > 8192)) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	if((data->tau_atmosphere < 82) || (data->tau_atmosphere > 8192)) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	if(data->reflection_window > (8192 - data->tau_windowF)ID_)
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	lepton.flux_linear_parameters.scene_emissivity       = data->scene_emissivity;
+	lepton.flux_linear_parameters.temperature_background = data->temperature_background;
+	lepton.flux_linear_parameters.tau_window             = data->tau_window;
+	lepton.flux_linear_parameters.temperatur_window      = data->temperatur_window;
+	lepton.flux_linear_parameters.tau_atmosphere         = data->tau_atmosphere;
+	lepton.flux_linear_parameters.temperature_atmosphere = data->temperature_atmosphere;
+	lepton.flux_linear_parameters.reflection_window      = data->reflection_window;
+	lepton.flux_linear_parameters.temperature_reflection = data->temperature_reflection;
+
+	lepton.config_bitmask |= LEPTON_CONFIG_BITMASK_FLUX_PARAMETERS;
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_flux_linear_parameters(const GetFluxLinearParameters *data, GetFluxLinearParameters_Response *response) {
+	response->header.length          = sizeof(GetFluxLinearParameters_Response);
+	response->scene_emissivity       = lepton.flux_linear_parameters.scene_emissivity;
+	response->temperature_background = lepton.flux_linear_parameters.temperature_background;
+	response->tau_window             = lepton.flux_linear_parameters.tau_window;
+	response->temperatur_window      = lepton.flux_linear_parameters.temperatur_window;
+	response->tau_atmosphere         = lepton.flux_linear_parameters.tau_atmosphere;
+	response->temperature_atmosphere = lepton.flux_linear_parameters.temperature_atmosphere;
+	response->reflection_window      = lepton.flux_linear_parameters.reflection_window;
+	response->temperature_reflection = lepton.flux_linear_parameters.temperature_reflection;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
 
 
 bool handle_high_contrast_image_low_level_callback(void) {

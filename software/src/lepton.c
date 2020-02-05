@@ -716,6 +716,14 @@ void lepton_init(Lepton *lepton) {
 	lepton->spotmeter_roi[3]          = 30;
 	lepton->resolution                = 1;
 	lepton->current_callback_config   = THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE;
+	lepton->flux_linear_parameters.scene_emissivity       = 8192;
+	lepton->flux_linear_parameters.temperature_background = 29515;
+	lepton->flux_linear_parameters.tau_window             = 8192;
+	lepton->flux_linear_parameters.temperatur_window      = 29515;
+	lepton->flux_linear_parameters.tau_atmosphere         = 8192;
+	lepton->flux_linear_parameters.temperature_atmosphere = 29515;
+	lepton->flux_linear_parameters.reflection_window      = 0;
+	lepton->flux_linear_parameters.temperature_reflection = 29515;
 
 	lepton_init_gpio(lepton);
 	lepton_init_i2c(lepton);
@@ -898,6 +906,17 @@ void lepton_handle_configuration(Lepton *lepton) {
 					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
 				}
 				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_RESOLUTION;
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_FLUX_PARAMETERS) {
+				uint32_t rad_status = 1;
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				lepton_attribute_write(lepton, LEPTON_CID_RAD_FLUX_LINEAR_PARAMETERS, 8, (uint16_t*)&lepton->flux_linear_parameters);
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_FLUX_PARAMETERS;
 			}
 
 			lepton_init_spi(lepton);
