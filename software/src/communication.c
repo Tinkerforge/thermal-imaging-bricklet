@@ -292,7 +292,7 @@ BootloaderHandleMessageResponse set_flux_linear_parameters(const SetFluxLinearPa
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
-	if(data->reflection_window > (8192 - data->tau_windowF)ID_)
+	if(data->reflection_window > (8192 - data->tau_window)) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
