@@ -19,7 +19,7 @@ import java.lang.Math;
 public class ExampleCreateImage {
 	private static final String HOST = "localhost";
 	private static final int PORT = 4223;
-	private static final String UID = "XYZ"; // Change to your UID
+	private static final String UID = "XYZ"; // Change XYZ to the UID of your Thermal Imaging Bricklet
 
 	// Creates standard thermal image color palette (blue=cold, red=hot)
 	private static int[] paletteR = new int[256];

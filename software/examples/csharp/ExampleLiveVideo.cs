@@ -14,7 +14,7 @@ class Example : System.Windows.Forms.Form
 {
 	private static string HOST = "localhost";
 	private static int PORT = 4223;
-	private static string UID = "XYZ"; // Change to your UID
+	private static string UID = "XYZ"; // Change XYZ to the UID of your Thermal Imaging Bricklet
 
 	private static int WIDTH = 80;
 	private static int HEIGHT = 60;

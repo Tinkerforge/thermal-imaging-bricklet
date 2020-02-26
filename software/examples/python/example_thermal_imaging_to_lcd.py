@@ -9,7 +9,7 @@
 HOST = "localhost"
 PORT = 4223
 UID_TI  = "ABC"  # Change ABC to the UID of your Thermal Imaging Bricklet
-UID_LCD = "DEF"  # Change DEF to the UID of your LCD 128x64
+UID_LCD = "DEF"  # Change DEF to the UID of your LCD 128x64 Bricklet
 LCD_WIDTH  = 128 # Columns LCD
 LCD_HEIGHT = 64  # Rows LCD
 TI_WIDTH   = 80  # Columns Thermal Image

@@ -28,7 +28,7 @@ public class ExampleLiveVideo extends JFrame  {
 
 	private static final String HOST = "localhost";
 	private static final int PORT = 4223;
-	private static final String UID = "XYZ"; // Change to your UID
+	private static final String UID = "XYZ"; // Change XYZ to the UID of your Thermal Imaging Bricklet
 
 	private static final int WIDTH = 80;
 	private static final int HEIGHT = 60;

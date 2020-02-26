@@ -13,12 +13,13 @@ class Example
 {
 	private static string HOST = "localhost";
 	private static int PORT = 4223;
-	private static string UID = "XYZ"; // Change to your UID
+	private static string UID = "XYZ"; // Change XYZ to the UID of your Thermal Imaging Bricklet
 
 	// Creates standard thermal image color palette (blue=cold, red=hot)
 	private static byte[] paletteR = new byte[256];
 	private static byte[] paletteG = new byte[256];
 	private static byte[] paletteB = new byte[256];
+
 	static void CreateThermalImageColorPalette()
 	{
 		for(int x = 0; x < 256; x++)
