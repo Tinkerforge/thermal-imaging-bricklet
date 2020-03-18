@@ -18,7 +18,7 @@ HighContrastImageCB[sender_,FIXME_]:=
 AddEventHandler[ti@HighContrastImageCallback,HighContrastImageCB]
 
 (*Enable high contrast image transfer for callback*)
-ti@SetImageTransferConfig[BrickletThermalImaging`IMAGEUTRANSFERUCALLBACKUHIGHUCONTRASTUIMAGE]
+ti@SetImageTransferConfig[Tinkerforge`BrickletThermalImaging`IMAGEUTRANSFERUCALLBACKUHIGHUCONTRASTUIMAGE]
 
 Input["Click OK to exit"]
 

@@ -29,7 +29,7 @@ Notebook[{
    RowBox[{"
 "}],
    RowBox[{"(*", "Enable high contrast image transfer for callback", "*)"}],
-   RowBox[{"ti", "@", RowBox[{"SetImageTransferConfig", "[", "BrickletThermalImaging`IMAGEUTRANSFERUCALLBACKUHIGHUCONTRASTUIMAGE", "]"}]}],
+   RowBox[{"ti", "@", RowBox[{"SetImageTransferConfig", "[", "Tinkerforge`BrickletThermalImaging`IMAGEUTRANSFERUCALLBACKUHIGHUCONTRASTUIMAGE", "]"}]}],
    RowBox[{"
 "}],
    RowBox[{"Input", "[", "\"\<Click OK to exit\>\"", "]"}],
