@@ -15,5 +15,5 @@
 
 2020-02-05: 2.0.5 (45a1ac9)
 - Fix vertical orientation of images transferred by getter
-- Fix tearing issue when images transferred by getter
+- Fix tearing issue with images transferred by getter
 - Add Set/GetLinearFluxParameters API
