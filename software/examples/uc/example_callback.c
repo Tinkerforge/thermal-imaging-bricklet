@@ -44,13 +44,11 @@ void high_contrast_image_low_level_handler(struct TF_ThermalImaging *device, uin
 	}
 }
 
-
 TF_ThermalImaging ti;
 
 void example_setup(TF_HalContext *hal) {
 	// Create device object
 	check(tf_thermal_imaging_create(&ti, UID, hal), "create device object");
-
 
 	// Register high contrast image callback to function high_contrast_image_low_level_handler
 	tf_thermal_imaging_register_high_contrast_image_low_level_callback(&ti,
@@ -60,10 +58,9 @@ void example_setup(TF_HalContext *hal) {
 	// Enable high contrast image transfer for callback
 	check(tf_thermal_imaging_set_image_transfer_config(&ti,
 	                                                   TF_THERMAL_IMAGING_IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE), "call set_image_transfer_config");
-
 }
 
 void example_loop(TF_HalContext *hal) {
-	// Poll for callbacks.
+	// Poll for callbacks
 	tf_hal_callback_tick(hal, 0);
 }
