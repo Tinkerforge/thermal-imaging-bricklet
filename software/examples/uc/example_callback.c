@@ -3,15 +3,18 @@
 
 #define UID "XYZ" // Change XYZ to the UID of your Thermal Imaging Bricklet
 
+void example_setup(TF_HalContext *hal);
+void example_loop(TF_HalContext *hal);
+
 void check(int rc, const char* msg);
 
-uint16_t image_size = 80 * 60;
+static uint16_t image_size = 80 * 60;
 
-int lowest_index = -1;
-uint8_t lowest_value = 255;
+static int lowest_index = -1;
+static uint8_t lowest_value = 255;
 
 // Callback function for high contrast image callback
-void high_contrast_image_low_level_handler(struct TF_ThermalImaging *device, uint16_t image_chunk_offset, uint8_t image_chunk_data[62], void *user_data) {
+static void high_contrast_image_low_level_handler(struct TF_ThermalImaging *device, uint16_t image_chunk_offset, uint8_t image_chunk_data[62], void *user_data) {
 	(void)device;
 	(void)user_data; // avoid unused parameter warning
 
@@ -44,7 +47,7 @@ void high_contrast_image_low_level_handler(struct TF_ThermalImaging *device, uin
 	}
 }
 
-TF_ThermalImaging ti;
+static TF_ThermalImaging ti;
 
 void example_setup(TF_HalContext *hal) {
 	// Create device object
