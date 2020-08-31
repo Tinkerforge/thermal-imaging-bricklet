@@ -43,7 +43,7 @@ static void high_contrast_image_low_level_handler(struct TF_ThermalImaging *devi
 	}
 
 	if(last_chunk) {
-		tf_hal_printf("Image streamed successfully. Lowest value is %d at coordinates (%d, %d)\n", lowest_value, lowest_index % 80, lowest_index / 80);
+		tf_hal_printf("Image streamed successfully. Lowest value is %I8d at coordinates (%d, %d)\n", lowest_value, lowest_index % 80, lowest_index / 80);
 	}
 }
 
