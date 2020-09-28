@@ -27,6 +27,8 @@ public class ExampleCreateImage {
 	private static int[] paletteB = new int[256];
 	public static void createThermalImageColorPalette()
 	{
+		// The palette is gnuplot's PM3D palette.
+		// See here for details: https://stackoverflow.com/questions/28495390/thermal-imaging-palette
 		for(int x = 0; x < 256; x++)
 		{
 			paletteR[x] = (int)(255*Math.sqrt(x/255.0));

@@ -25,6 +25,8 @@ function matlab_example_live_video()
   paletteB = zeros(1, 255, 'int32');
 
   function createThermalImageColorPalette()
+    % The palette is gnuplot's PM3D palette.
+    % See here for details: https://stackoverflow.com/questions/28495390/thermal-imaging-palette
     for x = 1:1:255
       paletteR(x) = int32(fix(255 * sqrt(x / 255)));
       paletteG(x) = int32(fix(255 * (x / 255)^3));

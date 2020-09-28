@@ -28,6 +28,8 @@ class Example : System.Windows.Forms.Form
 	private byte[] paletteB = new byte[256];
 	void CreateThermalImageColorPalette()
 	{
+		// The palette is gnuplot's PM3D palette.
+		// See here for details: https://stackoverflow.com/questions/28495390/thermal-imaging-palette
 		for(int x = 0; x < 256; x++)
 		{
 			paletteR[x] = System.Convert.ToByte(255*Math.Sqrt(x/255.0));

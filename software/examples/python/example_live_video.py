@@ -33,6 +33,8 @@ image_queue = Queue()
 def get_thermal_image_color_palette():
     palette = []
 
+    #The palette is gnuplot's PM3D palette.
+    #See here for details: https://stackoverflow.com/questions/28495390/thermal-imaging-palette
     for x in range(256):
         x /= 255.0
         palette.append(int(round(255*math.sqrt(x))))                  # RED
