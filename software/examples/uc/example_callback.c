@@ -7,8 +7,8 @@
 
 #define UID "XYZ" // Change XYZ to the UID of your Thermal Imaging Bricklet
 
-void example_setup(TF_HalContext *hal);
-void example_loop(TF_HalContext *hal);
+void example_setup(TF_HAL *hal);
+void example_loop(TF_HAL *hal);
 
 void check(int rc, const char* msg);
 
@@ -53,7 +53,7 @@ static void high_contrast_image_low_level_handler(struct TF_ThermalImaging *devi
 
 static TF_ThermalImaging ti;
 
-void example_setup(TF_HalContext *hal) {
+void example_setup(TF_HAL *hal) {
 	// Create device object
 	check(tf_thermal_imaging_create(&ti, UID, hal), "create device object");
 
@@ -67,7 +67,7 @@ void example_setup(TF_HalContext *hal) {
 	                                                   TF_THERMAL_IMAGING_IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE), "call set_image_transfer_config");
 }
 
-void example_loop(TF_HalContext *hal) {
+void example_loop(TF_HAL *hal) {
 	// Poll for callbacks
 	tf_hal_callback_tick(hal, 0);
 }
