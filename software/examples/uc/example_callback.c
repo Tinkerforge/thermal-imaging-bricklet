@@ -1,16 +1,13 @@
 // This example is not self-contained.
-// It requres usage of the example driver specific to your platform.
+// It requires usage of the example driver specific to your platform.
 // See the HAL documentation.
 
-#include "bindings/hal_common.h"
-#include "bindings/bricklet_thermal_imaging.h"
+#include "src/bindings/hal_common.h"
+#include "src/bindings/bricklet_thermal_imaging.h"
 
-#define UID "XYZ" // Change XYZ to the UID of your Thermal Imaging Bricklet
-
+void check(int rc, const char *msg);
 void example_setup(TF_HAL *hal);
 void example_loop(TF_HAL *hal);
-
-void check(int rc, const char* msg);
 
 static uint16_t image_size = 80 * 60;
 
@@ -55,7 +52,7 @@ static TF_ThermalImaging ti;
 
 void example_setup(TF_HAL *hal) {
 	// Create device object
-	check(tf_thermal_imaging_create(&ti, UID, hal), "create device object");
+	check(tf_thermal_imaging_create(&ti, NULL, hal), "create device object");
 
 	// Register high contrast image callback to function high_contrast_image_low_level_handler
 	tf_thermal_imaging_register_high_contrast_image_low_level_callback(&ti,
