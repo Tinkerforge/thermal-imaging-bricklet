@@ -332,7 +332,7 @@ typedef struct {
 	uint32_t explicit_cmd_to_open;        // bool def:disabled
 	uint16_t desired_ffc_temp_delta;      // def:300 (kelvins*100)
 	uint16_t imminent_delay;              // def:52 (frame counts)
-} LeptonSysFFCShutterMode;
+} __attribute__((__packed__)) LeptonSysFFCShutterMode;
 
 typedef struct {
 	uint8_t reserved;
@@ -504,7 +504,9 @@ typedef enum {
 	LEPTON_CONFIG_BITMASK_AGC_EMPTY_COUNTS     = 1 << 4,
 	LEPTON_CONFIG_BITMASK_SPOTMETER_ROI        = 1 << 5,
 	LEPTON_CONFIG_BITMASK_RESOLUTION           = 1 << 6,
-	LEPTON_CONFIG_BITMASK_FLUX_PARAMETERS      = 1 << 7
+	LEPTON_CONFIG_BITMASK_FLUX_PARAMETERS      = 1 << 7,
+	LEPTON_CONFIG_BITMASK_SHUTTER_MODE         = 1 << 8,
+	LEPTON_CONFIG_BITMASK_RUN_FFC              = 1 << 9
 } LeptonConfigBitmask;
 
 
@@ -534,6 +536,7 @@ typedef struct {
 	bool manual_transfer_ongoing;
 
 	LeptonFluxLinearParameters flux_linear_parameters;
+	LeptonSysFFCShutterMode sys_ffc_shutter_mode;
 
 	LeptonStatistics statistics;
 } Lepton;

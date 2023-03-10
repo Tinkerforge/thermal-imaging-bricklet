@@ -42,6 +42,9 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_GET_IMAGE_TRANSFER_CONFIG: return get_image_transfer_config(message, response);
 		case FID_SET_FLUX_LINEAR_PARAMETERS: return set_flux_linear_parameters(message);
 		case FID_GET_FLUX_LINEAR_PARAMETERS: return get_flux_linear_parameters(message, response);
+		case FID_SET_FFC_SHUTTER_MODE: return set_ffc_shutter_mode(message);
+		case FID_GET_FFC_SHUTTER_MODE: return get_ffc_shutter_mode(message, response);
+		case FID_RUN_FFC_NORMALIZATION: return run_ffc_normalization(message);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -52,7 +55,7 @@ BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighC
 
 	response->header.length = sizeof(GetHighContrastImageLowLevel_Response);
 
-	if(lepton.stream_callback_config != THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE) {
+	if(lepton.stream_callback_config != THERMAL_IMAGING_IMAGE_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -63,24 +66,24 @@ BootloaderHandleMessageResponse get_high_contrast_image_low_level(const GetHighC
 		length = LEPTON_IMAGE_BUFFER_SIZE - lepton.image_buffer_stream_index;
 	}
 
-	response->stream_chunk_offset = lepton.image_buffer_stream_index;
+	response->image_chunk_offset = lepton.image_buffer_stream_index;
 
 	if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
 		uint32_t length_first_packet = LEPTON_PACKET_PAYLOAD_SIZE - packet_payload_index;
 		for(uint8_t i = 0; i < length_first_packet; i++) {
-			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			response->image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 			packet_payload_index++;
 		}
 
 		lepton_packet++;
 		packet_payload_index = 0;
 		for(uint8_t i = length_first_packet; i < length; i++) {
-			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			response->image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 			packet_payload_index++;
 		}
 	} else {
 		for(uint8_t i = 0; i < length; i++) {
-			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			response->image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 			packet_payload_index++;
 		}
 	}
@@ -103,7 +106,7 @@ BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTempera
 
 	response->header.length = sizeof(GetTemperatureImageLowLevel_Response);
 
-	if(lepton.stream_callback_config != THERMAL_IMAGING_DATA_TRANSFER_MANUAL_TEMPERATURE_IMAGE) {
+	if(lepton.stream_callback_config != THERMAL_IMAGING_IMAGE_TRANSFER_MANUAL_TEMPERATURE_IMAGE) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -114,24 +117,24 @@ BootloaderHandleMessageResponse get_temperature_image_low_level(const GetTempera
 		length = LEPTON_IMAGE_BUFFER_SIZE - lepton.image_buffer_stream_index;
 	}
 
-	response->stream_chunk_offset = lepton.image_buffer_stream_index;
+	response->image_chunk_offset = lepton.image_buffer_stream_index;
 
 	if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
 		uint32_t length_first_packet = LEPTON_PACKET_PAYLOAD_SIZE - packet_payload_index;
 		for(uint8_t i = 0; i < length_first_packet; i++) {
-			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			response->image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 			packet_payload_index++;
 		}
 
 		lepton_packet++;
 		packet_payload_index = 0;
 		for(uint8_t i = length_first_packet; i < length; i++) {
-			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			response->image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 			packet_payload_index++;
 		}
 	} else {
 		for(uint8_t i = 0; i < length; i++) {
-			response->stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+			response->image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 			packet_payload_index++;
 		}
 	}
@@ -260,7 +263,7 @@ BootloaderHandleMessageResponse get_high_contrast_config(const GetHighContrastCo
 }
 
 BootloaderHandleMessageResponse set_image_transfer_config(const SetImageTransferConfig *data) {
-	if(data->config > THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_TEMPERATURE_IMAGE) {
+	if(data->config > THERMAL_IMAGING_IMAGE_TRANSFER_CALLBACK_TEMPERATURE_IMAGE) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -324,6 +327,43 @@ BootloaderHandleMessageResponse get_flux_linear_parameters(const GetFluxLinearPa
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
+BootloaderHandleMessageResponse set_ffc_shutter_mode(const SetFFCShutterMode *data) {
+	lepton.sys_ffc_shutter_mode.shutter_mode                = data->shutter_mode;
+	lepton.sys_ffc_shutter_mode.temp_lockout_state          = data->temp_lockout_state;
+	lepton.sys_ffc_shutter_mode.video_freeze_during_ffc     = data->video_freeze_during_ffc;
+	lepton.sys_ffc_shutter_mode.ffc_desired                 = data->ffc_desired;
+	lepton.sys_ffc_shutter_mode.elapsed_time_since_last_ffc = data->elapsed_time_since_last_ffc;
+	lepton.sys_ffc_shutter_mode.desired_ffc_period          = data->desired_ffc_period;
+	lepton.sys_ffc_shutter_mode.explicit_cmd_to_open        = data->explicit_cmd_to_open;
+	lepton.sys_ffc_shutter_mode.desired_ffc_temp_delta      = data->desired_ffc_temp_delta;
+	lepton.sys_ffc_shutter_mode.imminent_delay              = data->imminent_delay;
+
+	lepton.config_bitmask |= LEPTON_CONFIG_BITMASK_SHUTTER_MODE;
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_ffc_shutter_mode(const GetFFCShutterMode *data, GetFFCShutterMode_Response *response) {
+	response->header.length               = sizeof(GetFFCShutterMode_Response);
+	response->shutter_mode                = lepton.sys_ffc_shutter_mode.shutter_mode;
+	response->temp_lockout_state          = lepton.sys_ffc_shutter_mode.temp_lockout_state;
+	response->video_freeze_during_ffc     = lepton.sys_ffc_shutter_mode.video_freeze_during_ffc;
+	response->ffc_desired                 = lepton.sys_ffc_shutter_mode.ffc_desired;
+	response->elapsed_time_since_last_ffc = lepton.sys_ffc_shutter_mode.elapsed_time_since_last_ffc;
+	response->desired_ffc_period          = lepton.sys_ffc_shutter_mode.desired_ffc_period;
+	response->explicit_cmd_to_open        = lepton.sys_ffc_shutter_mode.explicit_cmd_to_open;
+	response->desired_ffc_temp_delta      = lepton.sys_ffc_shutter_mode.desired_ffc_temp_delta;
+	response->imminent_delay              = lepton.sys_ffc_shutter_mode.imminent_delay;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse run_ffc_normalization(const RunFFCNormalization *data) {
+	lepton.config_bitmask |= LEPTON_CONFIG_BITMASK_RUN_FFC;
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
 
 bool handle_high_contrast_image_low_level_callback(void) {
 	static bool is_buffered = false;
@@ -346,24 +386,24 @@ bool handle_high_contrast_image_low_level_callback(void) {
 		}
 
 		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(HighContrastImageLowLevel_Callback), FID_CALLBACK_HIGH_CONTRAST_IMAGE_LOW_LEVEL);
-		cb.stream_chunk_offset = lepton.image_buffer_stream_index;
+		cb.image_chunk_offset = lepton.image_buffer_stream_index;
 
 		if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
 			uint32_t length_first_packet = LEPTON_PACKET_PAYLOAD_SIZE - packet_payload_index;
 			for(uint8_t i = 0; i < length_first_packet; i++) {
-				cb.stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+				cb.image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 				packet_payload_index++;
 			}
 
 			lepton_packet++;
 			packet_payload_index = 0;
 			for(uint8_t i = length_first_packet; i < length; i++) {
-				cb.stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+				cb.image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 				packet_payload_index++;
 			}
 		} else {
 			for(uint8_t i = 0; i < length; i++) {
-				cb.stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+				cb.image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 				packet_payload_index++;
 			}
 		}
@@ -409,24 +449,24 @@ bool handle_temperature_image_low_level_callback(void) {
 		}
 
 		tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(TemperatureImageLowLevel_Callback), FID_CALLBACK_TEMPERATURE_IMAGE_LOW_LEVEL);
-		cb.stream_chunk_offset = lepton.image_buffer_stream_index;
+		cb.image_chunk_offset = lepton.image_buffer_stream_index;
 
 		if(packet_payload_index + length > LEPTON_PACKET_PAYLOAD_SIZE) {
 			uint32_t length_first_packet = LEPTON_PACKET_PAYLOAD_SIZE - packet_payload_index;
 			for(uint8_t i = 0; i < length_first_packet; i++) {
-				cb.stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+				cb.image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 				packet_payload_index++;
 			}
 
 			lepton_packet++;
 			packet_payload_index = 0;
 			for(uint8_t i = length_first_packet; i < length; i++) {
-				cb.stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+				cb.image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 				packet_payload_index++;
 			}
 		} else {
 			for(uint8_t i = 0; i < length; i++) {
-				cb.stream_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
+				cb.image_chunk_data[i] = lepton_packet->vospi.payload[packet_payload_index];
 				packet_payload_index++;
 			}
 		}
@@ -461,12 +501,12 @@ void communication_tick(void) {
 		counter = 0;
 
 		if((lepton.stream_callback_config != lepton.current_callback_config) &&
-		   (lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE || lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_TEMPERATURE_IMAGE) &&
+		   (lepton.stream_callback_config == THERMAL_IMAGING_IMAGE_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE || lepton.stream_callback_config == THERMAL_IMAGING_IMAGE_TRANSFER_MANUAL_TEMPERATURE_IMAGE) &&
 		   (!lepton.manual_transfer_ongoing)) {
 			lepton.stream_callback_config = lepton.current_callback_config;
 		}
 
-		if(lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE || lepton.stream_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_TEMPERATURE_IMAGE) {
+		if(lepton.stream_callback_config == THERMAL_IMAGING_IMAGE_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE || lepton.stream_callback_config == THERMAL_IMAGING_IMAGE_TRANSFER_MANUAL_TEMPERATURE_IMAGE) {
 			if(lepton.state == LEPTON_STATE_WRITE_FRAME && !lepton.manual_transfer_ongoing) {
 				lepton.state = LEPTON_STATE_READ_FRAME;
 				return;
@@ -474,8 +514,8 @@ void communication_tick(void) {
 		}
 
 		switch(lepton.stream_callback_config) {
-			case THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE: handle_high_contrast_image_low_level_callback(); break;
-			case THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_TEMPERATURE_IMAGE: handle_temperature_image_low_level_callback(); break;
+			case THERMAL_IMAGING_IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE: handle_high_contrast_image_low_level_callback(); break;
+			case THERMAL_IMAGING_IMAGE_TRANSFER_CALLBACK_TEMPERATURE_IMAGE: handle_temperature_image_low_level_callback(); break;
 			default: break;
 		}
 	}

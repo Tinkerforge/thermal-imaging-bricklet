@@ -715,7 +715,7 @@ void lepton_init(Lepton *lepton) {
 	lepton->spotmeter_roi[2]          = 40;
 	lepton->spotmeter_roi[3]          = 30;
 	lepton->resolution                = 1;
-	lepton->current_callback_config   = THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE;
+	lepton->current_callback_config   = THERMAL_IMAGING_IMAGE_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE;
 	lepton->flux_linear_parameters.scene_emissivity       = 8192;
 	lepton->flux_linear_parameters.temperature_background = 29515;
 	lepton->flux_linear_parameters.tau_window             = 8192;
@@ -724,6 +724,15 @@ void lepton_init(Lepton *lepton) {
 	lepton->flux_linear_parameters.temperature_atmosphere = 29515;
 	lepton->flux_linear_parameters.reflection_window      = 0;
 	lepton->flux_linear_parameters.temperature_reflection = 29515;
+	lepton->sys_ffc_shutter_mode.shutter_mode                = 1;
+	lepton->sys_ffc_shutter_mode.temp_lockout_state          = 0;
+	lepton->sys_ffc_shutter_mode.video_freeze_during_ffc     = 1;
+	lepton->sys_ffc_shutter_mode.ffc_desired                 = 0;
+	lepton->sys_ffc_shutter_mode.elapsed_time_since_last_ffc = 0;
+	lepton->sys_ffc_shutter_mode.desired_ffc_period          = 300000;
+	lepton->sys_ffc_shutter_mode.explicit_cmd_to_open        = 0;
+	lepton->sys_ffc_shutter_mode.desired_ffc_temp_delta      = 300;
+	lepton->sys_ffc_shutter_mode.imminent_delay              = 52;
 
 	lepton_init_gpio(lepton);
 	lepton_init_i2c(lepton);
@@ -835,8 +844,8 @@ void lepton_handle_configuration(Lepton *lepton) {
 
 			if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_AGC_ENABLE) {
 				uint32_t enabled = 1; // Enable tlinear in temperature mode
-				if((lepton->current_callback_config == THERMAL_IMAGING_DATA_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE) ||
-				   (lepton->current_callback_config == THERMAL_IMAGING_DATA_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE)) {
+				if((lepton->current_callback_config == THERMAL_IMAGING_IMAGE_TRANSFER_CALLBACK_HIGH_CONTRAST_IMAGE) ||
+				   (lepton->current_callback_config == THERMAL_IMAGING_IMAGE_TRANSFER_MANUAL_HIGH_CONTRAST_IMAGE)) {
 					enabled = 0; // Disable tlinear in high contrast mode
 				}
 
@@ -917,6 +926,28 @@ void lepton_handle_configuration(Lepton *lepton) {
 				}
 
 				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_FLUX_PARAMETERS;
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_SHUTTER_MODE) {
+				uint32_t rad_status = 1;
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				lepton_attribute_write(lepton, LEPTON_CID_SYS_FFC_SHUTTER_MODE, 16, (uint16_t*)&lepton->sys_ffc_shutter_mode);
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_SHUTTER_MODE;
+			} else if(lepton->config_bitmask & LEPTON_CONFIG_BITMASK_RUN_FFC) {
+				uint32_t rad_status = 1;
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+				lepton_command_run(&lepton, LEPTON_CID_SYS_RUN_FFC);
+				while(rad_status != 0) {
+					lepton_attribute_read(lepton, LEPTON_CID_RAD_RUN_STATUS, 2, (uint16_t*)&rad_status);
+				}
+
+				lepton->config_bitmask &= ~LEPTON_CONFIG_BITMASK_RUN_FFC;
 			}
 
 			lepton_init_spi(lepton);
